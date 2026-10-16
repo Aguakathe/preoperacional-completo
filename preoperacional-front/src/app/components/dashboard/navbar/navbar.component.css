@@ -1,0 +1,25 @@
+:host { display: block; position: sticky; top: 0; z-index: 20; }
+
+.navbar { background: linear-gradient(100deg, #062a24, var(--c-primary) 60%, var(--c-primary-600)); color: #fff; box-shadow: 0 2px 12px rgba(0, 40, 34, .25); border-bottom: 2px solid var(--d-mint); }
+.navbar-content {
+  max-width: 1040px; margin: 0 auto; padding: .65rem 1rem;
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+}
+
+.brand { display: flex; align-items: center; gap: .6rem; min-width: 0; }
+.brand-badge { width: 38px; height: 38px; display: grid; place-items: center; background: rgba(0, 0, 0, .3); color: var(--d-mint); border: 1px solid var(--d-line); border-radius: 11px; font-size: 1.3rem; }
+.brand-text { font-weight: 800; font-size: 1.1rem; letter-spacing: -.01em; white-space: nowrap; }
+
+.nav-section { display: flex; align-items: center; gap: .75rem; min-width: 0; }
+.user-chip { display: flex; align-items: center; gap: .5rem; min-width: 0; }
+.avatar { flex: none; width: 34px; height: 34px; display: grid; place-items: center; border-radius: 50%; background: rgba(255, 255, 255, .18); font-weight: 700; }
+.user-textos { display: grid; min-width: 0; line-height: 1.2; }
+.user-name { font-weight: 600; max-width: 22ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.user-login { font-size: .75rem; opacity: .75; }
+.admin-badge { padding: .1rem .5rem; font-size: .72rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; background: #fff; color: var(--c-primary); border-radius: 999px; }
+
+@media (max-width: 520px) {
+  .brand-text, .logout-label, .user-login { display: none; }
+  .user-name { max-width: 12ch; }
+  .logout-btn { min-width: 44px; padding-inline: .6rem; }
+}

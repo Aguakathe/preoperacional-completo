@@ -1,0 +1,122 @@
+<div class="galeria">
+  <app-page-header icono="images" titulo="Galería por categoría" subtitulo="Consulta y filtra las fotos de cada inspección" [nivel]="3">
+    <button type="button" class="btn btn-secondary btn-sm" (click)="reintentar()" [disabled]="cargando()">
+      <app-icon name="refresh" /><span>Actualizar</span>
+    </button>
+  </app-page-header>
+
+  @if (cargando() && totalGeneral() === 0) {
+    <p class="cargando" role="status"><span class="spinner" aria-hidden="true"></span> Cargando fotos…</p>
+  } @else if (error(); as err) {
+    <section class="estado-vacio card" role="alert">
+      <app-icon name="alert" />
+      <h4>No se pudieron cargar las fotos</h4>
+      <p>{{ err }}</p>
+      <button type="button" class="btn btn-secondary" (click)="reintentar()"><app-icon name="refresh" /><span>Reintentar</span></button>
+    </section>
+  } @else if (totalGeneral() === 0) {
+    <section class="estado-vacio card">
+      <app-icon name="camera" />
+      <h4>Aún no hay fotos</h4>
+      <p>Guarda una inspección en «Fotos de estado» y sus fotos aparecerán aquí, ordenadas por categoría.</p>
+    </section>
+  } @else {
+    <div class="selector">
+      <div class="form-group">
+        <label for="inspeccion" class="form-label">Inspección</label>
+        <select id="inspeccion" class="form-control" (change)="cambiarInspeccion($event)">
+          <option value="todas" [selected]="inspeccionActiva() === 'todas'">Todas las inspecciones ({{ totalGeneral() }} fotos)</option>
+          @for (i of inspecciones(); track i.id) {
+            <option [value]="i.id" [selected]="inspeccionActiva() === i.id">{{ i.etiqueta }} ({{ i.total }})</option>
+          }
+        </select>
+      </div>
+      @if (inspeccionDetalle(); as m) {
+        <div class="inspeccion-info">
+          <span><span class="chip-placa">{{ m.placa }}</span> · {{ fechaCorta(m.fechaInspeccion) }} · Inspector: {{ m.inspector }}
+            @if (m.kilometraje !== null) { · {{ m.kilometraje }} km }</span>
+          @if (m.observaciones) { <p class="obs">«{{ m.observaciones }}»</p> }
+          @if (puedeEditarInspeccion(m)) {
+            <button type="button" class="btn btn-ghost btn-sm btn-peligro" (click)="eliminarInspeccion(m)"><app-icon name="trash" /><span>Eliminar inspección</span></button>
+          }
+        </div>
+      }
+    </div>
+
+    <app-categorias-foto modo="filtro" titulo="Categorías de fotos"
+      ayuda="Toca una categoría para filtrar. En escritorio puedes arrastrar una foto sobre otra categoría para moverla."
+      [conteos]="conteos()" [(seleccion)]="categoriaFiltro" (fotoSoltada)="alSoltarEnCategoria($event)" />
+
+    <p class="resultado" aria-live="polite">
+      @if (categoriaFiltro(); as c) {
+        Mostrando <strong>{{ vista().length }}</strong> de {{ totalAlcance() }} · {{ nombreCategoria(c) }}
+      } @else {
+        Mostrando <strong>{{ totalAlcance() }}</strong> {{ totalAlcance() === 1 ? 'foto' : 'fotos' }}
+      }
+    </p>
+
+    @if (vista().length === 0) {
+      <section class="estado-vacio card">
+        <app-icon name="scan" />
+        <h4>No hay fotos en esta categoría</h4>
+        <p>Elige otra categoría o vuelve a ver todas.</p>
+        <button type="button" class="btn btn-secondary" (click)="categoriaFiltro.set(null)">Ver todas</button>
+      </section>
+    } @else {
+      <ul class="rejilla">
+        @for (v of vista(); track v.foto.id) {
+          <li class="foto" [attr.draggable]="v.editable" (dragstart)="v.editable && alArrastrar($event, v.foto)">
+            <button type="button" class="miniatura" (click)="abrirVisor(v.foto)" [attr.aria-label]="'Ampliar ' + v.foto.nombre">
+              <img [src]="v.foto.url" [alt]="v.foto.nombre" loading="lazy" decoding="async" draggable="false">
+              <span class="etiqueta"><app-icon [name]="iconoCategoria(v.foto.categoria)" /> {{ nombreCategoria(v.foto.categoria) }}</span>
+            </button>
+            <div class="datos">
+              <span class="nombre" [attr.title]="v.foto.nombre">{{ v.foto.nombre }}</span>
+              <span class="meta">{{ v.placa }} · {{ fechaCorta(v.foto.creadaEn) }} · {{ formatFileSize(v.foto.tamano) }}</span>
+              @if (v.editable) {
+                <div class="acciones">
+                  <select class="form-control form-control-sm" (change)="alElegirCategoria(v.foto, $event)" [attr.aria-label]="'Mover ' + v.foto.nombre + ' a otra categoría'">
+                    @for (cat of categorias; track cat.id) {
+                      <option [value]="cat.id" [selected]="cat.id === v.foto.categoria">{{ cat.nombre }}</option>
+                    }
+                  </select>
+                  <button type="button" class="btn btn-ghost btn-sm btn-icon-only btn-peligro" (click)="eliminar(v.foto)" [attr.aria-label]="'Eliminar ' + v.foto.nombre"><app-icon name="trash" /></button>
+                </div>
+              } @else {
+                <span class="solo-lectura"><app-icon name="eye" /> Subida por {{ v.foto.creadaPor }}</span>
+              }
+            </div>
+          </li>
+        }
+      </ul>
+    }
+  }
+
+  @if (itemVisor(); as it) {
+    <div class="visor-fondo" (click)="cerrarVisor()">
+      <div class="visor" role="dialog" aria-modal="true" [attr.aria-label]="'Foto ' + it.foto.nombre" (click)="$event.stopPropagation()" (keydown)="teclasVisor($event)">
+        <button type="button" class="visor-cerrar" (click)="cerrarVisor()" aria-label="Cerrar visor"><app-icon name="x" /></button>
+        <div class="visor-imagen">
+          <button type="button" class="nav prev" (click)="navegarVisor(-1)" aria-label="Foto anterior" [disabled]="vista().length < 2"><app-icon name="chevron-left" /></button>
+          <img [src]="it.foto.url" [alt]="it.foto.nombre">
+          <button type="button" class="nav next" (click)="navegarVisor(1)" aria-label="Foto siguiente" [disabled]="vista().length < 2"><app-icon name="chevron-right" /></button>
+        </div>
+        <div class="visor-pie">
+          <div class="visor-info">
+            <strong>{{ it.foto.nombre }}</strong>
+            <span>{{ it.placa }} · {{ fechaCorta(it.foto.creadaEn) }} · {{ indiceVisor() + 1 }} de {{ vista().length }}</span>
+          </div>
+          @if (it.editable) {
+            <select class="form-control form-control-sm" (change)="alElegirCategoria(it.foto, $event)" aria-label="Categoría de la foto">
+              @for (cat of categorias; track cat.id) {
+                <option [value]="cat.id" [selected]="cat.id === it.foto.categoria">{{ cat.nombre }}</option>
+              }
+            </select>
+          } @else {
+            <span class="visor-cat"><app-icon [name]="iconoCategoria(it.foto.categoria)" /> {{ nombreCategoria(it.foto.categoria) }}</span>
+          }
+        </div>
+      </div>
+    </div>
+  }
+</div>

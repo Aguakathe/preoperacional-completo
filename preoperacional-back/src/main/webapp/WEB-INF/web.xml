@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="https://jakarta.ee/xml/ns/jakartaee"
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd"
+   version="6.0">
+    <session-config>
+        <session-timeout>
+            30
+        </session-timeout>
+        <cookie-config>
+            <http-only>true</http-only>
+        </cookie-config>
+    </session-config>
+
+    <!--
+      Los filtros se declaran aqui (y no con @WebFilter) para garantizar el ORDEN:
+      primero CORS (responde el "preflight" OPTIONS del front Angular) y despues
+      la verificacion de sesion. Con anotaciones el orden no esta garantizado.
+    -->
+    <filter>
+        <filter-name>CorsFilter</filter-name>
+        <filter-class>com.mycompany.preoperacional.util.CorsFilter</filter-class>
+    </filter>
+    <filter>
+        <filter-name>AuthFilter</filter-name>
+        <filter-class>com.mycompany.preoperacional.util.AuthFilter</filter-class>
+    </filter>
+
+    <filter-mapping>
+        <filter-name>CorsFilter</filter-name>
+        <url-pattern>/api/*</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>AuthFilter</filter-name>
+        <url-pattern>/api/*</url-pattern>
+    </filter-mapping>
+</web-app>

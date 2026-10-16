@@ -1,0 +1,33 @@
+.hero {
+  width: min(520px, 100%);
+  padding: 2.5rem 2rem;
+  text-align: center;
+  color: #fff;
+  background: rgba(255, 255, 255, .08);
+  border: 1px solid rgba(255, 255, 255, .18);
+  border-radius: 24px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, .35);
+}
+
+.logo-badge {
+  width: 76px; height: 76px; margin: 0 auto 1.1rem;
+  display: grid; place-items: center; font-size: 2.4rem;
+  background: rgba(0, 0, 0, .3); color: var(--d-mint); border: 1px solid var(--d-line); border-radius: 22px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .3), 0 0 32px -8px rgba(79, 240, 176, .5);
+}
+
+.main-title { font-size: clamp(2rem, 6vw, 2.8rem); font-weight: 800; letter-spacing: -.02em; line-height: 1.1; }
+.subtitle { margin-top: .4rem; color: rgba(255, 255, 255, .85); font-size: 1.05rem; }
+
+.features {
+  list-style: none; margin: 1.75rem 0; padding: 1.1rem 1.25rem;
+  display: grid; gap: .7rem; text-align: left;
+  background: rgba(0, 0, 0, .18); border-radius: var(--radius);
+}
+.features li { display: flex; align-items: center; gap: .7rem; font-size: .95rem; color: rgba(255, 255, 255, .92); }
+.features app-icon { color: var(--d-mint); font-size: 1.3rem; }
+
+.cta { width: 100%; max-width: 280px; font-size: 1rem; }
+
+@media (max-width: 480px) { .hero { padding: 2rem 1.25rem; } }

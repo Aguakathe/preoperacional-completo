@@ -1,0 +1,17 @@
+<section class="hero fade-in" aria-labelledby="titulo-bienvenida">
+  <div class="logo-badge" aria-hidden="true"><app-icon name="moto" /></div>
+  <h1 id="titulo-bienvenida" class="main-title">NCR Atleos</h1>
+  <p class="subtitle">Sistema de Gestión de Motos</p>
+
+  <ul class="features" aria-label="Qué puedes hacer en la plataforma">
+    @for (f of funciones; track f.texto) {
+      <li><app-icon [name]="f.icono" /><span>{{ f.texto }}</span></li>
+    }
+  </ul>
+
+  <!-- CORRECCIÓN: era un <button routerLink>; un enlace de navegación debe ser un <a> (clic medio, "abrir en pestaña", lectores de pantalla) -->
+  <a class="btn btn-light cta" routerLink="/inicio/login">
+    <app-icon name="lock" />
+    <span>Iniciar sesión</span>
+  </a>
+</section>

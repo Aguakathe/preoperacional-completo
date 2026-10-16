@@ -1,0 +1,9 @@
+/* Más info: https://angular.dev/reference/configs/workspace-config */
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./out-tsc/spec",
+    "types": ["vitest/globals"]
+  },
+  "include": ["src/**/*.ts"]
+}

@@ -1,0 +1,11 @@
+:host { display: block; min-height: 100vh; min-height: 100dvh; background: var(--c-bg); }
+
+.dashboard { max-width: 1040px; margin: 0 auto; padding: 1.25rem 1rem 3rem; outline: none; }
+.panels { margin-top: 1.25rem; }
+.tab-panel { animation: fade-in-up .25s ease-out backwards; }
+
+@media (max-width: 640px) {
+  .dashboard { padding: .85rem .6rem 2.5rem; }
+  /* En móvil las pestañas muestran solo el ícono + etiqueta corta sin desbordar la pantalla */
+  .tab-button { padding-inline: .8rem; font-size: .88rem; }
+}

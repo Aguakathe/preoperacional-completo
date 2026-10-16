@@ -1,0 +1,21 @@
+/* Fondo de marca para la zona pública. Antes: 93 líneas con estilos de formulario duplicados. */
+:host {
+  display: block;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background:
+    radial-gradient(60rem 30rem at 15% -10%, rgba(0, 168, 89, .28), transparent 60%),
+    radial-gradient(50rem 30rem at 100% 100%, rgba(0, 107, 92, .55), transparent 60%),
+    linear-gradient(rgba(255, 255, 255, .035) 1px, transparent 1px) 0 0 / 32px 32px,
+    linear-gradient(90deg, rgba(255, 255, 255, .035) 1px, transparent 1px) 0 0 / 32px 32px,
+    linear-gradient(145deg, #0b1f1a, var(--c-primary-700) 55%, var(--c-primary));
+}
+
+.layout {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem 1rem;
+  outline: none;
+}

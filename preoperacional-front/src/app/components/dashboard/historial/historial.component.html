@@ -1,0 +1,179 @@
+<app-page-header icono="history" titulo="Historial de preoperacionales"
+  [subtitulo]="esAdmin() ? 'Todos los preoperacionales enviados por los conductores' : 'Los preoperacionales que has enviado'">
+  <button type="button" class="btn btn-secondary btn-sm" (click)="cargar()" [disabled]="cargando()">
+    <app-icon name="refresh" /><span>Actualizar</span>
+  </button>
+</app-page-header>
+
+<section class="card" aria-label="Filtros">
+  <form class="filtros" [formGroup]="filtros" (ngSubmit)="cargar()">
+    <div class="form-group">
+      <label for="h-placa" class="form-label">Placa</label>
+      <input type="text" id="h-placa" class="form-control" appPlaca formControlName="placa" placeholder="Todas">
+    </div>
+    <div class="form-group">
+      <label for="h-desde" class="form-label">Desde</label>
+      <input type="date" id="h-desde" class="form-control" formControlName="desde" [max]="hoy">
+    </div>
+    <div class="form-group">
+      <label for="h-hasta" class="form-label">Hasta</label>
+      <input type="date" id="h-hasta" class="form-control" formControlName="hasta" [max]="hoy">
+    </div>
+    <div class="filtros-acciones">
+      <button type="submit" class="btn btn-primary"><app-icon name="search" /><span>Buscar</span></button>
+      @if (filtrado()) {
+        <button type="button" class="btn btn-ghost" (click)="limpiarFiltros()">Quitar filtros</button>
+      }
+    </div>
+  </form>
+</section>
+
+<section class="stats" aria-label="Resumen del historial">
+  <div class="stat"><span class="stat-label">Registros</span><span class="stat-value">{{ total() }}</span></div>
+  <div class="stat" [class.stat-alerta]="noAptos() > 0"><span class="stat-label">No aptos para conducir</span><span class="stat-value">{{ noAptos() }}</span></div>
+  <div class="stat"><span class="stat-label">Con elementos que no cumplen</span><span class="stat-value">{{ conNovedades() }}</span></div>
+</section>
+
+<section class="card" aria-labelledby="t-registros">
+  <h3 id="t-registros" class="card-title">Registros</h3>
+
+  @if (cargando() && registros().length === 0) {
+    <p class="cargando" role="status"><span class="spinner" aria-hidden="true"></span> Cargando historial…</p>
+  } @else if (error(); as err) {
+    <div class="estado-vacio" role="alert">
+      <app-icon name="alert" />
+      <h4>No se pudo cargar el historial</h4>
+      <p>{{ err }}</p>
+      <button type="button" class="btn btn-secondary" (click)="cargar()"><app-icon name="refresh" /><span>Reintentar</span></button>
+    </div>
+  } @else if (registros().length === 0) {
+    <div class="estado-vacio">
+      <app-icon name="clipboard" />
+      @if (filtrado()) {
+        <h4>No hay registros con esos filtros</h4>
+        <p>Prueba con otra placa o con un rango de fechas más amplio.</p>
+      } @else {
+        <h4>Aún no hay preoperacionales</h4>
+        <p>Cuando envíes el formulario preoperacional, aparecerá aquí.</p>
+      }
+    </div>
+  } @else {
+    <ul class="registros" [attr.aria-busy]="cargando()">
+      @for (r of registros(); track r.id) {
+        <li class="registro">
+          <div class="registro-principal">
+            <span class="chip-placa">{{ r.placaMoto }}</span>
+            <div class="registro-texto">
+              <strong>{{ r.nombreCompleto }}</strong>
+              <span class="registro-meta">
+                {{ fechaHora(r.fechaEnvio) }} · {{ r.kilometraje | number }} km
+                @if (esAdmin()) { · por {{ r.registradoPor }} }
+              </span>
+            </div>
+          </div>
+          <div class="registro-lado">
+            @if (r.aptoParaConducir) {
+              <span class="badge badge-success"><app-icon name="check" /> Apto</span>
+            } @else {
+              <span class="badge badge-danger"><app-icon name="alert" /> No apto</span>
+            }
+            @if (r.totalNoCumplen > 0) {
+              <span class="badge badge-warning">{{ r.totalNoCumplen }} no {{ r.totalNoCumplen === 1 ? 'cumple' : 'cumplen' }}</span>
+            } @else {
+              <span class="badge badge-neutral">Sin novedades</span>
+            }
+            <button type="button" class="btn btn-secondary btn-sm" (click)="abrir(r)" [disabled]="cargandoDetalle() === r.id"
+              [attr.aria-label]="'Ver detalle del ' + fechaHora(r.fechaEnvio)">
+              @if (cargandoDetalle() === r.id) { <span class="spinner" aria-hidden="true"></span> } @else { <app-icon name="eye" /> }
+              <span>Ver</span>
+            </button>
+            @if (esAdmin()) {
+              <button type="button" class="btn btn-ghost btn-sm btn-icon-only btn-peligro" (click)="eliminar(r)"
+                [attr.aria-label]="'Eliminar registro del ' + fechaHora(r.fechaEnvio)"><app-icon name="trash" /></button>
+            }
+          </div>
+        </li>
+      }
+    </ul>
+  }
+</section>
+
+@if (detalle(); as d) {
+  <div class="modal-fondo" (click)="cerrar()">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="t-modal-detalle" (click)="$event.stopPropagation()" (keydown)="teclasModal($event)">
+      <button type="button" class="modal-cerrar" (click)="cerrar()" aria-label="Cerrar detalle"><app-icon name="x" /></button>
+
+      <header class="detalle-cabecera">
+        <span class="chip-placa grande">{{ d.placaMoto }}</span>
+        <div>
+          <h3 id="t-modal-detalle">Preoperacional del {{ fechaHora(d.fechaEnvio) }}</h3>
+          <div class="detalle-badges">
+            @if (d.aptoParaConducir) {
+              <span class="badge badge-success"><app-icon name="check" /> Apto para conducir</span>
+            } @else {
+              <span class="badge badge-danger"><app-icon name="alert" /> No apto para conducir</span>
+            }
+            @if (d.totalNoCumplen > 0) {
+              <span class="badge badge-warning">{{ d.totalNoCumplen }} {{ d.totalNoCumplen === 1 ? 'elemento no cumple' : 'elementos no cumplen' }}</span>
+            }
+          </div>
+        </div>
+      </header>
+
+      <dl class="datos">
+        <div><dt>Conductor</dt><dd>{{ d.nombreCompleto }}</dd></div>
+        <div><dt>QLID</dt><dd>{{ d.qlid }}</dd></div>
+        <div><dt>Kilometraje</dt><dd>{{ d.kilometraje | number }} km</dd></div>
+        <div><dt>Registrado por</dt><dd>{{ d.registradoPor }}</dd></div>
+        <div><dt>Conoce la campaña</dt><dd>{{ d.conoceCampana === 'si' ? 'Sí' : 'No' }}</dd></div>
+      </dl>
+
+      <h4 class="detalle-titulo">Estado del vehículo</h4>
+      <ul class="lista-estado">
+        <li><span>Documentación vigente</span><span class="badge" [class.badge-success]="d.documentacionVigente === 'buen_estado'" [class.badge-danger]="d.documentacionVigente === 'mal_estado'">{{ etiquetasChequeo[d.documentacionVigente] }}</span></li>
+        <li><span>Estado general</span><span class="badge" [class.badge-success]="d.estadoGeneralVehiculo === 'buen_estado'" [class.badge-danger]="d.estadoGeneralVehiculo === 'mal_estado'">{{ etiquetasChequeo[d.estadoGeneralVehiculo] }}</span></li>
+        <li><span>Sistemas y accesorios</span><span class="badge" [class.badge-success]="d.estadoSistemasAccesorios === 'buen_estado'" [class.badge-danger]="d.estadoSistemasAccesorios === 'mal_estado'">{{ etiquetasChequeo[d.estadoSistemasAccesorios] }}</span></li>
+      </ul>
+
+      <h4 class="detalle-titulo">Certificación de salud</h4>
+      <ol class="lista-estado salud">
+        @for (s of d.saludItems ?? []; track $index) {
+          <li><span>{{ s.pregunta }}</span>
+            @if (s.respuesta === 'si') { <span class="badge badge-success">Sí</span> } @else { <span class="badge badge-danger">No</span> }
+          </li>
+        }
+      </ol>
+
+      @if (d.elementosMalEstado === 'si') {
+        <h4 class="detalle-titulo">Elementos que no cumplen</h4>
+        <div class="categorias-detalle">
+          @for (c of categorias; track c.clave) {
+            <div class="categoria-detalle">
+              <strong>{{ c.titulo }}</strong>
+              @if (elementosDe(d, c.clave).length === 0) {
+                <span class="badge badge-success">En perfecto estado</span>
+              } @else {
+                <ul>
+                  @for (e of elementosDe(d, c.clave); track e) { <li>{{ e }}</li> }
+                </ul>
+              }
+            </div>
+          }
+        </div>
+      } @else if (d.confirmaciones; as c) {
+        <h4 class="detalle-titulo">Confirmaciones</h4>
+        <ul class="lista-estado">
+          <li><span>Comunicará cualquier condición insegura a su líder</span><span class="badge" [class.badge-success]="c.confirmacionInsegura === 'si'" [class.badge-danger]="c.confirmacionInsegura === 'no'">{{ c.confirmacionInsegura === 'si' ? 'Sí' : 'No' }}</span></li>
+          <li><span>Inspeccionó el vehículo de forma consciente</span><span class="badge" [class.badge-success]="c.confirmacionInspeccion === 'si'" [class.badge-danger]="c.confirmacionInspeccion === 'no'">{{ c.confirmacionInspeccion === 'si' ? 'Sí' : 'No' }}</span></li>
+        </ul>
+      }
+
+      <div class="detalle-acciones">
+        @if (esAdmin()) {
+          <button type="button" class="btn btn-ghost btn-peligro" (click)="eliminar(d)"><app-icon name="trash" /><span>Eliminar</span></button>
+        }
+        <button type="button" class="btn btn-primary" (click)="cerrar()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+}

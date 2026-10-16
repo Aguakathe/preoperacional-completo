@@ -1,0 +1,124 @@
+<div class="fotos">
+  <app-page-header icono="camera" titulo="Fotos de estado" subtitulo="Registra una inspección con fotografías de la moto, ordenadas por categoría" [nivel]="3" />
+
+  <form [formGroup]="fotosForm" (ngSubmit)="onSubmit()" novalidate>
+
+    <section class="card" aria-labelledby="t-info">
+      <h4 id="t-info" class="card-title">Información de la motocicleta</h4>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="f-placa" class="form-label">Placa de la moto <span class="req" aria-hidden="true">*</span></label>
+          <input type="text" id="f-placa" class="form-control" appPlaca formControlName="placa" placeholder="ABC12G"
+            [class.is-invalid]="mostrarError('placa')" [attr.aria-invalid]="mostrarError('placa')"
+            [attr.aria-describedby]="mostrarError('placa') ? 'f-placa-error' : null">
+          @if (mostrarError('placa')) {
+            <span id="f-placa-error" class="field-error"><app-icon name="alert" />
+              @if (fotosForm.controls.placa.hasError('required')) { La placa es obligatoria }
+              @else { Formato: 3 letras + 2 números + 1 letra (ej: ABC12G) }
+            </span>
+          }
+        </div>
+        <div class="form-group">
+          <label for="f-km" class="form-label">Kilometraje actual <span class="req" aria-hidden="true">*</span></label>
+          <input type="number" id="f-km" class="form-control" formControlName="kilometraje" placeholder="Ej: 15400" min="0" inputmode="numeric"
+            [class.is-invalid]="mostrarError('kilometraje')" [attr.aria-invalid]="mostrarError('kilometraje')"
+            [attr.aria-describedby]="mostrarError('kilometraje') ? 'f-km-error' : null">
+          @if (mostrarError('kilometraje')) {
+            <span id="f-km-error" class="field-error"><app-icon name="alert" />
+              @if (fotosForm.controls.kilometraje.hasError('min')) { No puede ser negativo } @else { El kilometraje es obligatorio }
+            </span>
+          }
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="f-fecha" class="form-label">Fecha de inspección <span class="req" aria-hidden="true">*</span></label>
+          <input type="date" id="f-fecha" class="form-control" formControlName="fechaInspeccion" [max]="hoy"
+            [class.is-invalid]="mostrarError('fechaInspeccion')" [attr.aria-invalid]="mostrarError('fechaInspeccion')">
+          @if (mostrarError('fechaInspeccion')) {
+            <span class="field-error"><app-icon name="alert" /> Selecciona la fecha</span>
+          }
+        </div>
+        <div class="form-group">
+          <label for="f-inspector" class="form-label">Inspector <span class="req" aria-hidden="true">*</span></label>
+          <input type="text" id="f-inspector" class="form-control" formControlName="inspector" placeholder="Nombre del inspector" autocomplete="name"
+            [class.is-invalid]="mostrarError('inspector')" [attr.aria-invalid]="mostrarError('inspector')">
+          @if (mostrarError('inspector')) {
+            <span class="field-error"><app-icon name="alert" /> El nombre del inspector es obligatorio</span>
+          }
+        </div>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="t-fotos">
+      <h4 id="t-fotos" class="card-title">Fotos del estado</h4>
+
+      <app-categorias-foto modo="destino" titulo="Categorías de fotos"
+        ayuda="Elige una categoría y sube las fotos: quedarán guardadas en ella. También puedes soltar archivos sobre una categoría."
+        [conteos]="conteos" [(seleccion)]="categoriaDestino"
+        (archivosSoltados)="onArchivosEnCategoria($event)" (fotoSoltada)="onFotoEnCategoria($event)" />
+
+      <app-zona-carga class="zona" titulo="Subir fotos" objeto="las fotos" [accept]="acceptFotos"
+        [ayuda]="'JPG, PNG o WEBP · máx. 10 MB cada una · hasta ' + maxFotos + ' fotos'" (archivos)="handleFiles($event)">
+        @if (categoriaDestino) {
+          <p class="destino"><app-icon [name]="iconoCategoria(categoriaDestino)" /> Se guardarán en <strong>{{ nombreCategoria(categoriaDestino) }}</strong></p>
+        }
+      </app-zona-carga>
+
+      @if (uploadedFiles.length > 0) {
+        <div class="uploaded">
+          <p class="uploaded-title" aria-live="polite">Fotos por guardar: <strong>{{ uploadedFiles.length }}/{{ maxFotos }}</strong></p>
+          <ul class="photos-grid">
+            @for (file of uploadedFiles; track file.id; let i = $index) {
+              <li class="photo-item" draggable="true" (dragstart)="onFotoDragStart($event, file)">
+                <div class="photo-preview">
+                  <img [src]="file.preview" [alt]="'Vista previa de ' + file.name" loading="lazy" decoding="async" draggable="false">
+                  <span class="photo-cat"><app-icon [name]="iconoCategoria(file.category)" /> {{ nombreCategoria(file.category) }}</span>
+                  <button type="button" class="remove-photo" (click)="removePhoto(i)" [attr.aria-label]="'Quitar ' + file.name">
+                    <app-icon name="x" />
+                  </button>
+                </div>
+                <div class="photo-info">
+                  <span class="photo-name" [attr.title]="file.name">{{ file.name }}</span>
+                  <span class="photo-size">{{ formatFileSize(file.size) }}</span>
+                  <select class="form-control form-control-sm" (change)="onCategoriaSelect(file, $event)"
+                    [attr.aria-label]="'Categoría de ' + file.name">
+                    @for (cat of categorias; track cat.id) {
+                      <option [value]="cat.id" [selected]="cat.id === file.category">{{ cat.nombre }}</option>
+                    }
+                  </select>
+                </div>
+              </li>
+            }
+          </ul>
+        </div>
+      }
+    </section>
+
+    <section class="card" aria-labelledby="t-obs">
+      <h4 id="t-obs" class="card-title">Observaciones</h4>
+      <div class="form-group">
+        <label for="f-obs" class="form-label">Comentarios sobre el estado de la motocicleta <span class="form-hint">(opcional)</span></label>
+        <textarea id="f-obs" class="form-control" formControlName="observaciones" rows="4"
+          placeholder="Describe el estado general, problemas encontrados, etc."></textarea>
+      </div>
+    </section>
+
+    <div class="actions-section">
+      <div class="form-progress">
+        <div class="progress-bar" role="progressbar" aria-label="Avance del formulario"
+          aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="getFormProgress()">
+          <div class="progress-fill" [style.width.%]="getFormProgress()"></div>
+        </div>
+        <span class="progress-text">{{ getFormProgress() }}%</span>
+      </div>
+      <div class="buttons-group">
+        <button type="button" class="btn btn-ghost" (click)="limpiarFormulario()" [disabled]="guardando"><app-icon name="reset" /><span>Limpiar</span></button>
+        <button type="submit" class="btn btn-primary" [disabled]="guardando">
+          @if (guardando) { <span class="spinner" aria-hidden="true"></span><span>Guardando…</span> }
+          @else { <app-icon name="save" /><span>Guardar inspección</span> }
+        </button>
+      </div>
+    </div>
+  </form>
+</div>

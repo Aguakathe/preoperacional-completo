@@ -1,0 +1,53 @@
+<app-navbar></app-navbar>
+
+<main id="contenido" tabindex="-1" class="dashboard">
+  <div class="tabs" role="tablist" aria-label="Secciones del panel">
+    @for (p of pestanas; track p.id; let i = $index) {
+      <button type="button" class="tab-button" role="tab"
+        [id]="'tab-' + p.id"
+        [attr.aria-selected]="activeTab === p.id"
+        [attr.aria-controls]="'panel-' + p.id"
+        [attr.tabindex]="activeTab === p.id ? 0 : -1"
+        [class.active]="activeTab === p.id"
+        (click)="setActiveTab(p.id)"
+        (keydown)="onTabKeydown($event, i)">
+        <app-icon [name]="p.icono" />
+        <span>{{ p.etiqueta }}</span>
+      </button>
+    }
+  </div>
+
+  <!-- Carga perezosa + conservación del estado: el panel se crea al visitarlo y luego solo se oculta -->
+  <div class="panels">
+    @if (visitadas.has('preoperacional')) {
+      <section class="tab-panel" role="tabpanel" id="panel-preoperacional" aria-labelledby="tab-preoperacional"
+        [hidden]="activeTab !== 'preoperacional'">
+        <app-preoperacional (verHistorial)="setActiveTab('historial')"></app-preoperacional>
+      </section>
+    }
+    @if (visitadas.has('historial')) {
+      <section class="tab-panel" role="tabpanel" id="panel-historial" aria-labelledby="tab-historial"
+        [hidden]="activeTab !== 'historial'">
+        <app-historial></app-historial>
+      </section>
+    }
+    @if (visitadas.has('mantenimientos')) {
+      <section class="tab-panel" role="tabpanel" id="panel-mantenimientos" aria-labelledby="tab-mantenimientos"
+        [hidden]="activeTab !== 'mantenimientos'">
+        <app-mantenimientos></app-mantenimientos>
+      </section>
+    }
+    @if (isAdmin && visitadas.has('usuarios')) {
+      <section class="tab-panel" role="tabpanel" id="panel-usuarios" aria-labelledby="tab-usuarios"
+        [hidden]="activeTab !== 'usuarios'">
+        <app-usuarios></app-usuarios>
+      </section>
+    }
+    @if (visitadas.has('cuenta')) {
+      <section class="tab-panel" role="tabpanel" id="panel-cuenta" aria-labelledby="tab-cuenta"
+        [hidden]="activeTab !== 'cuenta'">
+        <app-cambiar-password></app-cambiar-password>
+      </section>
+    }
+  </div>
+</main>

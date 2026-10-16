@@ -1,0 +1,268 @@
+<div class="preop">
+  <app-page-header icono="clipboard" titulo="Formulario preoperacional"
+    subtitulo="Campaña de prevención en la conducción de motocicletas · Responde todos los pasos antes de encender la moto" />
+
+  <!-- Confirmación del último envío: el usuario ve el resultado y puede revisarlo en el historial -->
+  @if (ultimoEnvio; as u) {
+    <section class="card resultado fade-in" [class.resultado-alerta]="!u.aptoParaConducir" aria-live="polite" aria-labelledby="t-resultado">
+      <div class="resultado-icono" aria-hidden="true"><app-icon [name]="u.aptoParaConducir ? 'check-circle' : 'alert'" /></div>
+      <div class="resultado-texto">
+        <h3 id="t-resultado">{{ u.aptoParaConducir ? 'Preoperacional registrado' : 'Registrado: no debes conducir' }}</h3>
+        <p>
+          <span class="chip-placa">{{ u.placaMoto }}</span> · {{ fechaHora(u.fechaEnvio) }}
+          @if (u.totalNoCumplen > 0) { · {{ u.totalNoCumplen }} {{ u.totalNoCumplen === 1 ? 'elemento no cumple' : 'elementos no cumplen' }} }
+        </p>
+        @if (!u.aptoParaConducir) {
+          <p>Informa de inmediato a tu jefe inmediato antes de iniciar cualquier desplazamiento.</p>
+        }
+      </div>
+      <div class="resultado-acciones">
+        <button type="button" class="btn btn-secondary btn-sm" (click)="verHistorial.emit()"><app-icon name="history" /><span>Ver historial</span></button>
+        <button type="button" class="btn btn-ghost btn-sm btn-icon-only" (click)="ultimoEnvio = null" aria-label="Cerrar confirmación"><app-icon name="x" /></button>
+      </div>
+    </section>
+  }
+
+  <form [formGroup]="preoperacionalForm" (ngSubmit)="onSubmit()" novalidate>
+
+    <!-- 1) Campaña de prevención -->
+    <fieldset class="card choice-set" id="sec-campana">
+      <legend class="card-title"><span class="step">1</span>¿Conoce usted la campaña de prevención en la conducción de motocicletas?</legend>
+      <div class="info-box">
+        <p><strong>Objetivo:</strong> proporcionar un material visible y llamativo que puedan ver los conductores en el momento de iniciar su conducción.</p>
+        <p><strong>Alcance:</strong> conductores que desarrollan actividades laborales.</p>
+        <p><strong>Estrategia:</strong> se socializará información preventiva en el preoperacional, de forma visible antes de encender la motocicleta.</p>
+      </div>
+      <div class="choice-group compact">
+        @for (op of siNo; track op.valor) {
+          <label class="choice">
+            <input type="radio" name="conoceCampana" [value]="op.valor" [(ngModel)]="conoceCampana" [ngModelOptions]="{standalone: true}">
+            <span>{{ op.etiqueta }}</span>
+          </label>
+        }
+      </div>
+    </fieldset>
+
+    <!-- 2) Datos del conductor y moto -->
+    <section class="card" id="sec-datos" aria-labelledby="t-datos">
+      <h3 id="t-datos" class="card-title"><span class="step">2</span>Datos del conductor y la moto</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="qlid" class="form-label">QLID <span class="req" aria-hidden="true">*</span></label>
+          <input type="text" id="qlid" class="form-control" formControlName="qlid" placeholder="Ej: AB123456" autocomplete="off"
+            [class.is-invalid]="mostrarError('qlid')" [attr.aria-invalid]="mostrarError('qlid')"
+            [attr.aria-describedby]="mostrarError('qlid') ? 'qlid-error' : null">
+          @if (mostrarError('qlid')) { <span id="qlid-error" class="field-error"><app-icon name="alert" /> El QLID es obligatorio</span> }
+        </div>
+        <div class="form-group">
+          <label for="nombreCompleto" class="form-label">Nombre completo <span class="req" aria-hidden="true">*</span></label>
+          <input type="text" id="nombreCompleto" class="form-control" formControlName="nombreCompleto" placeholder="Nombres y apellidos" autocomplete="name"
+            [class.is-invalid]="mostrarError('nombreCompleto')" [attr.aria-invalid]="mostrarError('nombreCompleto')"
+            [attr.aria-describedby]="mostrarError('nombreCompleto') ? 'nombre-error' : null">
+          @if (mostrarError('nombreCompleto')) { <span id="nombre-error" class="field-error"><app-icon name="alert" /> El nombre es obligatorio</span> }
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="placaMoto" class="form-label">Placa de la moto <span class="req" aria-hidden="true">*</span></label>
+                    <input type="text" id="placaMoto" class="form-control" appPlaca formControlName="placaMoto" placeholder="ABC12G"
+            [class.is-invalid]="mostrarError('placaMoto')" [attr.aria-invalid]="mostrarError('placaMoto')"
+            aria-describedby="placa-ayuda">
+          @if (mostrarError('placaMoto')) {
+            <span class="field-error"><app-icon name="alert" />
+              @if (preoperacionalForm.controls.placaMoto.hasError('required')) { La placa es obligatoria }
+              @else { Formato: 3 letras + 2 números + 1 letra }
+            </span>
+          }
+          <span id="placa-ayuda" class="form-hint">Ejemplo: ABC12G</span>
+        </div>
+        <div class="form-group">
+          <label for="kilometraje" class="form-label">Kilometraje <span class="req" aria-hidden="true">*</span></label>
+          <input type="number" id="kilometraje" class="form-control" formControlName="kilometraje" placeholder="Ej: 15400" min="0" inputmode="numeric"
+            [class.is-invalid]="mostrarError('kilometraje')" [attr.aria-invalid]="mostrarError('kilometraje')"
+            [attr.aria-describedby]="mostrarError('kilometraje') ? 'km-error' : null">
+          @if (mostrarError('kilometraje')) {
+            <span id="km-error" class="field-error"><app-icon name="alert" />
+              @if (preoperacionalForm.controls.kilometraje.hasError('min')) { El kilometraje no puede ser negativo }
+              @else { El kilometraje es obligatorio }
+            </span>
+          }
+        </div>
+      </div>
+    </section>
+
+    <!-- 3) Estado del vehículo -->
+    <section class="card" id="sec-estado" aria-labelledby="t-estado">
+      <h3 id="t-estado" class="card-title"><span class="step">3</span>Estado del vehículo</h3>
+      @for (c of chequeos; track c.id) {
+        <fieldset class="choice-set subseccion">
+          <legend class="subsection-title">{{ c.titulo }}</legend>
+          <ul class="elementos-lista">
+            @for (it of c.items; track it) { <li>{{ it }}</li> }
+          </ul>
+          <div class="choice-group">
+            <label class="choice">
+              <input type="radio" [name]="'chk_' + c.id" [attr.name]="'chk_' + c.id" value="buen_estado" [(ngModel)]="c.valor" [ngModelOptions]="{standalone: true}">
+              <span>Buen estado / Cumple</span>
+            </label>
+            <label class="choice">
+              <input type="radio" class="is-bad" [name]="'chk_' + c.id" [attr.name]="'chk_' + c.id" value="mal_estado" [(ngModel)]="c.valor" [ngModelOptions]="{standalone: true}">
+              <span>Mal estado / NO cumple</span>
+            </label>
+          </div>
+        </fieldset>
+      }
+    </section>
+
+    <!-- 4) Certificación de salud -->
+    <section class="card" id="sec-salud" aria-labelledby="t-salud">
+      <h3 id="t-salud" class="card-title"><span class="step">4</span>Certifico que me encuentro en condiciones óptimas de salud que permiten la conducción y el desarrollo de actividades laborales</h3>
+      <div class="salud-items">
+        @for (item of saludItems; track $index; let i = $index) {
+          <fieldset class="choice-set salud-item">
+            <legend class="salud-pregunta"><span class="salud-numero">{{ i + 1 }}.</span> {{ item.pregunta }}</legend>
+            <div class="choice-group">
+              <label class="choice">
+                <input type="radio" [name]="'salud_' + i" [attr.name]="'salud_' + i" value="si" [(ngModel)]="item.respuesta" [ngModelOptions]="{standalone: true}">
+                <span>Sí, me encuentro en condiciones óptimas de salud</span>
+              </label>
+              <label class="choice">
+                <input type="radio" class="is-bad" [name]="'salud_' + i" [attr.name]="'salud_' + i" value="no" [(ngModel)]="item.respuesta" [ngModelOptions]="{standalone: true}">
+                <span>No, por lo cual no conduciré e informaré a mi jefe inmediato</span>
+              </label>
+            </div>
+          </fieldset>
+        }
+      </div>
+      <!-- Aviso de seguridad inmediato si alguna respuesta de salud es "No" -->
+      @if (hayRiesgoSalud) {
+        <div class="alert alert-error mt" role="alert">
+          <app-icon name="alert" />
+          <span><strong>No debes conducir.</strong> Informa de inmediato a tu jefe inmediato antes de iniciar cualquier desplazamiento.</span>
+        </div>
+      }
+    </section>
+
+    <!-- 5) ¿Hay elementos en mal estado? -->
+    <fieldset class="card choice-set" id="sec-malestado">
+      <legend class="card-title"><span class="step">5</span>¿El vehículo presenta algún(os) elemento(s) que no cumplieron o están en mal estado?</legend>
+      <div class="choice-group">
+        <label class="choice">
+          <input type="radio" class="is-bad" name="elementosMalEstado" value="si" [(ngModel)]="elementosMalEstado" [ngModelOptions]="{standalone: true}">
+          <span>El vehículo, la documentación o el conductor presenta elementos que no cumplen o están en mal estado</span>
+        </label>
+        <label class="choice">
+          <input type="radio" name="elementosMalEstado" value="no" [(ngModel)]="elementosMalEstado" [ngModelOptions]="{standalone: true}">
+          <span>El vehículo, la documentación y el conductor están en perfecto estado para la conducción, funcionamiento y operación</span>
+        </label>
+      </div>
+      <!-- Detecta la contradicción con el punto 3 antes de enviar -->
+      @if (incoherencia) {
+        <div class="alert alert-warning mt" role="alert">
+          <app-icon name="alert" />
+          <span>En el punto 3 marcaste algún elemento en <strong>mal estado</strong>. Elige la primera opción para detallar cuáles no cumplen.</span>
+        </div>
+      }
+    </fieldset>
+
+    <!-- 6) Detalle de los elementos que no cumplen (condicional) -->
+    @if (elementosMalEstado === 'si') {
+      <section class="card fade-in" id="sec-detalle" aria-labelledby="t-detalle">
+        <h3 id="t-detalle" class="card-title"><span class="step">6</span>Elemento(s) que no cumplieron o están en mal estado</h3>
+
+        @for (cat of categorias; track cat.clave; let ci = $index) {
+          <fieldset class="choice-set subseccion">
+            <legend class="subsection-title">{{ cat.titulo }}</legend>
+            <div class="choice-group compact">
+              <label class="choice">
+                <input type="radio" [name]="'perfecto_' + cat.clave" [attr.name]="'perfecto_' + cat.clave" value="si" [ngModel]="cat.perfecto" [ngModelOptions]="{standalone: true}"
+                  (ngModelChange)="onPerfectoChange(cat, 'si')">
+                <span>{{ cat.etiquetaPerfecto }}</span>
+              </label>
+              <label class="choice">
+                <input type="radio" class="is-bad" [name]="'perfecto_' + cat.clave" [attr.name]="'perfecto_' + cat.clave" value="no" [ngModel]="cat.perfecto" [ngModelOptions]="{standalone: true}"
+                  (ngModelChange)="onPerfectoChange(cat, 'no')">
+                <span>Seleccionar elementos que no cumplen</span>
+              </label>
+            </div>
+
+            @if (cat.perfecto !== 'si') {
+              <div class="checkbox-grid">
+                @for (item of cat.items; track item; let ii = $index) {
+                  <label class="choice">
+                    <input type="checkbox" class="is-bad" [checked]="cat.seleccionados.includes(item)" (change)="toggleItem(cat, item, $event)">
+                    <span><span class="num">{{ cat.desde + ii }}.</span> {{ item }}</span>
+                  </label>
+                }
+              </div>
+            }
+          </fieldset>
+        }
+      </section>
+    }
+
+    <!-- 7) Confirmaciones (condicional) -->
+    @if (elementosMalEstado === 'no') {
+      <section class="card fade-in" id="sec-confirm" aria-labelledby="t-confirm">
+        <h3 id="t-confirm" class="card-title"><span class="step">7</span>Confirmaciones</h3>
+
+        <fieldset class="choice-set subseccion">
+          <legend class="confirmacion-texto">Confirmo que cualquier condición insegura (criterio en Mal estado / NO Cumple) la comunicaré telefónicamente a mi líder de territorio inmediatamente, para identificar medida de control y garantizar continuidad de la operación sin el uso de la motocicleta; esta no podrá ser usada para actividades laborales hasta que se haga la reparación y mantenimiento adecuado.</legend>
+          <div class="choice-group compact">
+            @for (op of siNo; track op.valor) {
+              <label class="choice">
+                <input type="radio" name="confirmacionInsegura" [value]="op.valor" [(ngModel)]="confirmacionInsegura" [ngModelOptions]="{standalone: true}">
+                <span>{{ op.etiqueta }}</span>
+              </label>
+            }
+          </div>
+        </fieldset>
+
+        <fieldset class="choice-set subseccion">
+          <legend class="confirmacion-texto">Confirmo que inspeccioné mi vehículo de forma consciente y que se encuentra en condiciones óptimas para desarrollar mis desplazamientos.</legend>
+          <div class="choice-group compact">
+            @for (op of siNo; track op.valor) {
+              <label class="choice">
+                <input type="radio" name="confirmacionInspeccion" [value]="op.valor" [(ngModel)]="confirmacionInspeccion" [ngModelOptions]="{standalone: true}">
+                <span>{{ op.etiqueta }}</span>
+              </label>
+            }
+          </div>
+        </fieldset>
+      </section>
+    }
+
+    <!-- Resumen de pendientes (tras intentar enviar), con enlaces que llevan a cada sección -->
+    @if (intentoEnvio && pendientes().length > 0) {
+      <div class="alert alert-warning pendientes" role="alert">
+        <app-icon name="alert" />
+        <div>
+          <strong>Antes de enviar, completa:</strong>
+          <ul>
+            @for (p of pendientes(); track p.id + p.texto) {
+              <li><button type="button" class="link-btn" (click)="irA(p.id)">{{ p.texto }}</button></li>
+            }
+          </ul>
+        </div>
+      </div>
+    }
+
+    <!-- Barra de acciones fija: el progreso y el botón siempre están a la vista en formularios largos -->
+    <div class="actions-section">
+      <div class="form-progress">
+        <div class="progress-bar" role="progressbar" aria-label="Avance del formulario"
+          aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="getFormProgress()">
+          <div class="progress-fill" [style.width.%]="getFormProgress()"></div>
+        </div>
+        <span class="progress-text">{{ getFormProgress() }}%</span>
+      </div>
+      <div class="buttons-group">
+        <button type="button" class="btn btn-ghost" (click)="limpiarFormulario()" [disabled]="enviando"><app-icon name="reset" /><span>Limpiar</span></button>
+        <button type="submit" class="btn btn-primary" [disabled]="enviando">
+          @if (enviando) { <span class="spinner" aria-hidden="true"></span><span>Enviando…</span> }
+          @else { <app-icon name="check" /><span>Enviar</span> }
+        </button>
+      </div>
+    </div>
+  </form>
+</div>

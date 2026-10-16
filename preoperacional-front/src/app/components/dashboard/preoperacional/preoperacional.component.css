@@ -1,0 +1,55 @@
+:host { display: block; }
+
+.mt { margin-top: 1rem; margin-bottom: 0; }
+
+/* Los <fieldset>/<legend> son semánticos (lectores de pantalla), se les quita el aspecto nativo */
+fieldset.card { min-width: 0; }
+legend.card-title { float: left; width: 100%; padding: 0; margin-bottom: 1rem; }
+legend.card-title + * { clear: both; }
+
+.info-box {
+  margin-bottom: 1rem; padding: .9rem 1rem; display: grid; gap: .4rem;
+  background: var(--c-primary-50); border-left: 4px solid var(--c-primary); border-radius: var(--radius-sm);
+  font-size: .92rem; color: var(--c-text);
+}
+
+.subseccion { padding: 1rem 0; border-top: 1px solid var(--c-border); }
+.subseccion:first-of-type { border-top: 0; padding-top: 0; }
+.subseccion:last-child { padding-bottom: 0; }
+.subsection-title { font-size: 1rem; font-weight: 700; margin-bottom: .6rem; line-height: 1.35; }
+
+.elementos-lista {
+  margin: 0 0 .9rem; padding: .7rem 1rem .7rem 2.2rem; columns: 2; column-gap: 2rem;
+  background: #f7faf9; border-radius: var(--radius-sm); font-size: .9rem; color: var(--c-text-muted);
+}
+.elementos-lista li { break-inside: avoid; padding: .1rem 0; }
+
+.checkbox-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; margin-top: .75rem; }
+.checkbox-grid .choice { flex: initial; }
+.num { color: var(--c-text-muted); font-variant-numeric: tabular-nums; margin-right: .15rem; }
+
+.salud-items { display: grid; gap: 0; }
+.salud-item { padding: 1rem 0; border-top: 1px solid var(--c-border); }
+.salud-item:first-child { border-top: 0; padding-top: 0; }
+.salud-pregunta { font-weight: 600; margin-bottom: .6rem; line-height: 1.4; }
+.salud-numero { color: var(--c-primary); font-weight: 800; }
+.confirmacion-texto { font-weight: 500; line-height: 1.5; margin-bottom: .75rem; }
+
+.pendientes ul { margin: .35rem 0 0; padding-left: 1.1rem; }
+.link-btn { padding: 0; border: 0; background: none; color: inherit; text-decoration: underline; text-align: left; font: inherit; }
+
+@media (max-width: 720px) {
+  .elementos-lista { columns: 1; }
+  .checkbox-grid { grid-template-columns: 1fr; }
+}
+
+/* Confirmación del último envío */
+.resultado { display: flex; align-items: flex-start; gap: 1rem; border-left: 5px solid var(--c-success); background: var(--c-success-50); }
+.resultado-alerta { border-left-color: var(--c-danger); background: var(--c-danger-50); }
+.resultado-icono { flex: none; width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; font-size: 1.4rem; background: #fff; color: var(--c-success); }
+.resultado-alerta .resultado-icono { color: var(--c-danger); }
+.resultado-texto { flex: 1; min-width: 0; display: grid; gap: .3rem; }
+.resultado-texto h3 { font-size: 1.05rem; }
+.resultado-texto p { color: var(--c-text-muted); font-size: .92rem; }
+.resultado-acciones { display: flex; align-items: center; gap: .4rem; }
+@media (max-width: 640px) { .resultado { flex-wrap: wrap; } .resultado-acciones { width: 100%; justify-content: space-between; } }

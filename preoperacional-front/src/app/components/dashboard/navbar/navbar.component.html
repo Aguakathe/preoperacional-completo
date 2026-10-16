@@ -1,0 +1,24 @@
+<header class="navbar">
+  <div class="navbar-content">
+    <div class="brand">
+      <span class="brand-badge" aria-hidden="true"><app-icon name="moto" /></span>
+      <span class="brand-text">NCR Atleos</span>
+    </div>
+
+    <div class="nav-section">
+      <div class="user-chip">
+        <span class="avatar" aria-hidden="true">{{ inicial() }}</span>
+        <span class="user-textos">
+          <span class="user-name">{{ nombre() }}</span>
+          @if (usuario()?.nombre) { <span class="user-login">{{ usuario()?.username }}</span> }
+        </span>
+        @if (esAdmin()) {
+          <span class="admin-badge">Admin</span>
+        }
+      </div>
+      <button type="button" class="btn btn-light btn-sm logout-btn" (click)="logout()" [disabled]="saliendo" aria-label="Cerrar sesión">
+        <app-icon name="logout" /><span class="logout-label">Salir</span>
+      </button>
+    </div>
+  </div>
+</header>

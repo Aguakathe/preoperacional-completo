@@ -1,0 +1,36 @@
+/* Abajo a la IZQUIERDA: a la derecha tapaban el botón principal de la barra de acciones fija (abajo)
+   y las pestañas (arriba). A la izquierda solo queda la barra de progreso, que no es un control. */
+.toast-region {
+  position: fixed; z-index: 1500; left: 1rem; bottom: 1rem;
+  display: flex; flex-direction: column; gap: .6rem;
+  width: min(380px, calc(100vw - 2rem)); pointer-events: none;
+}
+.toast {
+  pointer-events: auto; display: flex; align-items: flex-start; gap: .6rem;
+  padding: .8rem .9rem; border-radius: var(--radius); border: 1px solid; background: #fff;
+  box-shadow: var(--shadow-lg); font-size: .92rem; animation: in .25s ease-out both;
+}
+.toast-msg { flex: 1; padding-top: .05rem; }
+.toast-success { border-color: #a6dfc1; background: var(--c-success-50); color: var(--c-success); }
+.toast-error { border-color: #f4b8b2; background: var(--c-danger-50); color: var(--c-danger); }
+.toast-warning { border-color: #f2d49a; background: var(--c-warning-50); color: var(--c-warning); }
+.toast-info { border-color: #b5ccf6; background: var(--c-info-50); color: var(--c-info); }
+.toast-close { border: 0; background: transparent; color: inherit; border-radius: 6px; padding: .15rem; opacity: .75; line-height: 0; }
+.toast-close:hover { opacity: 1; background: rgba(0, 0, 0, .06); }
+
+.backdrop {
+  position: fixed; inset: 0; z-index: 1600; display: grid; place-items: center; padding: 1rem;
+  background: rgba(10, 25, 21, .55); backdrop-filter: blur(2px); animation: fade .15s ease-out both;
+}
+.dialog {
+  width: min(440px, 100%); background: #fff; border-radius: var(--radius-lg);
+  padding: 1.5rem; box-shadow: var(--shadow-lg); animation: in .2s ease-out both;
+}
+.dialog-title { font-size: 1.15rem; font-weight: 800; margin-bottom: .5rem; }
+.dialog-msg { color: var(--c-text-muted); margin-bottom: 1.25rem; }
+.dialog-actions { display: flex; justify-content: flex-end; gap: .6rem; flex-wrap: wrap; }
+
+@keyframes in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+@media (max-width: 640px) { .toast-region { left: .5rem; right: .5rem; bottom: auto; top: 4.25rem; width: auto; } }
+@media (max-width: 480px) { .dialog-actions .btn { flex: 1; } }

@@ -1,0 +1,143 @@
+<app-page-header icono="users" titulo="Usuarios" subtitulo="Crea cuentas y administra el acceso de los conductores" />
+
+<section class="card" aria-labelledby="t-nuevo">
+  <h3 id="t-nuevo" class="card-title">Nuevo usuario</h3>
+  <form [formGroup]="form" (ngSubmit)="crear()" novalidate>
+    <div class="form-row">
+      <div class="form-group">
+        <label for="u-username" class="form-label">Usuario <span class="req" aria-hidden="true">*</span></label>
+        <input type="text" id="u-username" class="form-control" formControlName="username" placeholder="Ej: jperez"
+          autocomplete="off" autocapitalize="none" spellcheck="false"
+          [class.is-invalid]="mostrarError('username')" [attr.aria-invalid]="mostrarError('username')"
+          [attr.aria-describedby]="mostrarError('username') ? 'u-username-error' : 'u-username-ayuda'">
+        @if (mostrarError('username')) {
+          <span id="u-username-error" class="field-error"><app-icon name="alert" />
+            @if (form.controls.username.hasError('required')) { El usuario es obligatorio }
+            @else { Solo letras, números, punto, guion y guion bajo (sin espacios) }
+          </span>
+        } @else {
+          <span id="u-username-ayuda" class="form-hint">Con este nombre iniciará sesión</span>
+        }
+      </div>
+      <div class="form-group">
+        <label for="u-nombre" class="form-label">Nombre completo <span class="form-hint">(opcional)</span></label>
+        <input type="text" id="u-nombre" class="form-control" formControlName="nombre" placeholder="Nombres y apellidos" autocomplete="off">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="u-password" class="form-label">Contraseña <span class="req" aria-hidden="true">*</span></label>
+        <div class="password-input">
+          <input [type]="showPassword ? 'text' : 'password'" id="u-password" class="form-control" formControlName="password"
+            [placeholder]="'Mínimo ' + passwordMin + ' caracteres'" autocomplete="new-password"
+            [class.is-invalid]="mostrarError('password')" [attr.aria-invalid]="mostrarError('password')">
+          <button type="button" class="password-toggle" (click)="showPassword = !showPassword"
+            [attr.aria-label]="showPassword ? 'Ocultar contraseñas' : 'Mostrar contraseñas'" [attr.aria-pressed]="showPassword">
+            <app-icon [name]="showPassword ? 'eye-off' : 'eye'" />
+          </button>
+        </div>
+        @if (mostrarError('password')) {
+          <span class="field-error"><app-icon name="alert" />
+            @if (form.controls.password.hasError('required')) { La contraseña es obligatoria } @else { Debe tener mínimo {{ passwordMin }} caracteres }
+          </span>
+        }
+        <app-fuerza-password [password]="form.controls.password.value" />
+      </div>
+      <div class="form-group">
+        <label for="u-confirm" class="form-label">Confirmar contraseña <span class="req" aria-hidden="true">*</span></label>
+        <input [type]="showPassword ? 'text' : 'password'" id="u-confirm" class="form-control" formControlName="confirmPassword"
+          placeholder="Repite la contraseña" autocomplete="new-password"
+          [class.is-invalid]="mostrarErrorConfirmacion()" [attr.aria-invalid]="mostrarErrorConfirmacion()">
+        @if (mostrarErrorConfirmacion()) {
+          <span class="field-error"><app-icon name="alert" /> Las contraseñas no coinciden</span>
+        }
+      </div>
+    </div>
+
+    <div class="form-pie">
+      <fieldset class="choice-set">
+        <legend class="form-label">Rol</legend>
+        <div class="choice-group compact">
+          <label class="choice"><input type="radio" formControlName="rol" value="usuario"><span>Usuario (conductor)</span></label>
+          <label class="choice"><input type="radio" formControlName="rol" value="admin"><span>Administrador</span></label>
+        </div>
+      </fieldset>
+      <button class="btn btn-primary" type="submit" [disabled]="creando()">
+        @if (creando()) { <span class="spinner" aria-hidden="true"></span><span>Creando…</span> }
+        @else { <app-icon name="user-plus" /><span>Crear usuario</span> }
+      </button>
+    </div>
+  </form>
+</section>
+
+<section class="card" aria-labelledby="t-lista">
+  <div class="lista-cabecera">
+    <h3 id="t-lista" class="card-title">Usuarios registrados</h3>
+    @if (usuarios().length > 0) {
+      <span class="form-hint">{{ activos() }} activos de {{ usuarios().length }}</span>
+    }
+  </div>
+
+  @if (cargando() && usuarios().length === 0) {
+    <p class="cargando" role="status"><span class="spinner" aria-hidden="true"></span> Cargando usuarios…</p>
+  } @else if (error(); as err) {
+    <div class="estado-vacio" role="alert">
+      <app-icon name="alert" />
+      <h4>No se pudo cargar la lista</h4>
+      <p>{{ err }}</p>
+      <button type="button" class="btn btn-secondary" (click)="cargar()"><app-icon name="refresh" /><span>Reintentar</span></button>
+    </div>
+  } @else {
+    <ul class="registros">
+      @for (u of usuarios(); track u.id) {
+        <li class="registro" [class.inactivo]="!u.estado">
+          <div class="registro-principal">
+            <span class="avatar" aria-hidden="true">{{ (u.nombre || u.username).charAt(0).toUpperCase() }}</span>
+            <div class="registro-texto">
+              <strong>{{ u.nombre || u.username }} @if (esYo(u)) { <span class="badge badge-info">Tú</span> }</strong>
+              <span class="registro-meta">
+                {{ u.username }}
+                @if (u.fechaCreacion) { · desde {{ u.fechaCreacion | date:'d MMM y' }} }
+              </span>
+            </div>
+          </div>
+
+          <div class="registro-lado">
+            @if (u.estado) { <span class="badge badge-success">Activo</span> } @else { <span class="badge badge-neutral">Inactivo</span> }
+            @if (esYo(u)) {
+              <span class="badge badge-primary">{{ u.rol === 'admin' ? 'Administrador' : 'Usuario' }}</span>
+            } @else {
+              <select class="form-control form-control-sm rol" [disabled]="ocupado() === u.id" (change)="cambiarRol(u, $event)"
+                [attr.aria-label]="'Rol de ' + u.username">
+                <option value="usuario" [selected]="u.rol === 'usuario'">Usuario</option>
+                <option value="admin" [selected]="u.rol === 'admin'">Administrador</option>
+              </select>
+              <button type="button" class="btn btn-ghost btn-sm" [disabled]="ocupado() === u.id"
+                (click)="restableciendo.set(restableciendo() === u.id ? null : u.id)" [attr.aria-expanded]="restableciendo() === u.id">
+                <app-icon name="key" /><span>Contraseña</span>
+              </button>
+              <button type="button" class="btn btn-sm" [class.btn-secondary]="!u.estado" [class.btn-ghost]="u.estado" [class.btn-peligro]="u.estado"
+                [disabled]="ocupado() === u.id" (click)="cambiarEstado(u)">
+                <app-icon [name]="u.estado ? 'user-x' : 'user-check'" /><span>{{ u.estado ? 'Desactivar' : 'Activar' }}</span>
+              </button>
+            }
+          </div>
+
+          @if (restableciendo() === u.id) {
+            <form class="restablecer" (submit)="$event.preventDefault(); restablecer(u, nueva)">
+              <label [for]="'nueva-' + u.id" class="form-label">Nueva contraseña para {{ u.username }}</label>
+              <div class="restablecer-fila">
+                <input #nueva [id]="'nueva-' + u.id" type="text" class="form-control" autocomplete="off"
+                  [placeholder]="'Mínimo ' + passwordMin + ' caracteres'">
+                <button type="submit" class="btn btn-primary btn-sm" [disabled]="ocupado() === u.id"><app-icon name="save" /><span>Guardar</span></button>
+                <button type="button" class="btn btn-ghost btn-sm" (click)="restableciendo.set(null)">Cancelar</button>
+              </div>
+              <span class="form-hint">El usuario podrá cambiarla después desde «Mi cuenta».</span>
+            </form>
+          }
+        </li>
+      }
+    </ul>
+  }
+</section>

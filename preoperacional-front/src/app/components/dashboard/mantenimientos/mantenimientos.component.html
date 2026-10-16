@@ -1,0 +1,37 @@
+<app-page-header icono="wrench" titulo="Mantenimientos" subtitulo="Inspecciones con fotos y gastos de mantenimiento de las motos" />
+
+<div class="tabs sub-tabs" role="tablist" aria-label="Secciones de mantenimiento">
+  @for (p of pestanas; track p.id; let i = $index) {
+    <button type="button" class="tab-button" role="tab"
+      [id]="'subtab-' + p.id"
+      [attr.aria-selected]="activeTab === p.id"
+      [attr.aria-controls]="'subpanel-' + p.id"
+      [attr.tabindex]="activeTab === p.id ? 0 : -1"
+      [class.active]="activeTab === p.id"
+      (click)="setActiveTab(p.id)"
+      (keydown)="onTabKeydown($event, i)">
+      <app-icon [name]="p.icono" /><span>{{ p.etiqueta }}</span>
+      @if (p.id === 'galeria' && totalFotos().length > 0) {
+        <span class="pill" aria-label="{{ totalFotos().length }} fotos">{{ totalFotos().length }}</span>
+      }
+    </button>
+  }
+</div>
+
+<div class="sub-panels">
+  @if (visitadas.has('fotos')) {
+    <section role="tabpanel" id="subpanel-fotos" aria-labelledby="subtab-fotos" [hidden]="activeTab !== 'fotos'">
+      <app-fotos-estado></app-fotos-estado>
+    </section>
+  }
+  @if (visitadas.has('galeria')) {
+    <section role="tabpanel" id="subpanel-galeria" aria-labelledby="subtab-galeria" [hidden]="activeTab !== 'galeria'">
+      <app-galeria-fotos></app-galeria-fotos>
+    </section>
+  }
+  @if (visitadas.has('gastos')) {
+    <section role="tabpanel" id="subpanel-gastos" aria-labelledby="subtab-gastos" [hidden]="activeTab !== 'gastos'">
+      <app-gastos-mantenimiento></app-gastos-mantenimiento>
+    </section>
+  }
+</div>

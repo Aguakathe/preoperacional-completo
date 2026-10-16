@@ -1,0 +1,6 @@
+<!-- MEJORA: enlace "saltar al contenido" para navegación con teclado.
+     Se maneja por código porque <base href="/"> haría que "#contenido" navegara a la raíz del sitio. -->
+<a class="skip-link" href="#contenido" (click)="saltarAlContenido($event)">Saltar al contenido</a>
+<router-outlet></router-outlet>
+<!-- NUEVO: avisos y diálogos de confirmación globales (reemplazan alert()/confirm()) -->
+<app-feedback-host></app-feedback-host>

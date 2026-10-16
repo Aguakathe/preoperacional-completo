@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<persistence version="3.0" xmlns="https://jakarta.ee/xml/ns/persistence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence https://jakarta.ee/xml/ns/persistence/persistence_3_0.xsd">
+  <!-- Unidad de Persistencia -->
+  <persistence-unit name="PreoperacionalPU" transaction-type="RESOURCE_LOCAL">
+    <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
+    <!-- Entidades del modelo -->
+    <class>com.mycompany.preoperacional.model.entity.Usuario</class>
+    <class>com.mycompany.preoperacional.model.entity.Rol</class>
+    <class>com.mycompany.preoperacional.model.entity.UsuarioRol</class>
+    <class>com.mycompany.preoperacional.model.entity.Preoperacional</class>
+    <class>com.mycompany.preoperacional.model.entity.RespuestaSalud</class>
+    <class>com.mycompany.preoperacional.model.entity.ElementoNoCumple</class>
+    <class>com.mycompany.preoperacional.model.entity.Mantenimiento</class>
+    <class>com.mycompany.preoperacional.model.entity.Foto</class>
+    <class>com.mycompany.preoperacional.model.entity.GastoMantenimiento</class>
+    <class>com.mycompany.preoperacional.model.entity.DocumentoGasto</class>
+    <exclude-unlisted-classes>false</exclude-unlisted-classes>
+    <properties>
+      <!-- Conexión a la base de datos (cambia usuario/clave si tu MySQL los tiene distintos).
+           También se pueden sobreescribir sin recompilar con las variables de entorno
+           DB_URL, DB_USER y DB_PASSWORD (ver util/JPAUtil.java). -->
+      <property name="jakarta.persistence.jdbc.url" value="jdbc:mysql://localhost:3306/preoperacionaldb?createDatabaseIfNotExist=true&amp;useSSL=false&amp;allowPublicKeyRetrieval=true&amp;serverTimezone=America/Bogota&amp;zeroDateTimeBehavior=CONVERT_TO_NULL&amp;characterEncoding=UTF-8"/>
+      <property name="jakarta.persistence.jdbc.user" value="root"/>
+      <property name="jakarta.persistence.jdbc.password" value=""/>
+      <property name="jakarta.persistence.jdbc.driver" value="com.mysql.cj.jdbc.Driver"/>
+      <!-- Manejo del esquema (creación/actualización de tablas) -->
+      <property name="hibernate.hbm2ddl.auto" value="update"/>
+      <!-- Mostrar SQL en consola -->
+      <property name="hibernate.show_sql" value="true"/>
+      <property name="hibernate.format_sql" value="true"/>
+      <!-- CONTEXTO -->
+      <property name="hibernate.current_session_context_class" value="thread"/>
+    </properties>
+  </persistence-unit>
+</persistence>

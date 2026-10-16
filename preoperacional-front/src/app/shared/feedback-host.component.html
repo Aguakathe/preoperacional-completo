@@ -1,0 +1,28 @@
+<!-- Avisos no bloqueantes. role="status"/"alert" para que los lectores de pantalla los anuncien -->
+<div class="toast-region" aria-live="polite">
+  @for (t of feedback.toasts(); track t.id) {
+    <div class="toast toast-{{ t.kind }}" [attr.role]="t.kind === 'error' ? 'alert' : 'status'">
+      <app-icon [name]="t.kind === 'success' ? 'check-circle' : t.kind === 'info' ? 'info' : 'alert'" />
+      <span class="toast-msg">{{ t.message }}</span>
+      <button type="button" class="toast-close" aria-label="Cerrar aviso" (click)="feedback.dismiss(t.id)">
+        <app-icon name="x" />
+      </button>
+    </div>
+  }
+</div>
+
+@if (feedback.confirmRequest(); as req) {
+  <div class="backdrop" (click)="feedback.resolveConfirm(false)">
+    <div #dialog class="dialog" role="alertdialog" aria-modal="true"
+         aria-labelledby="dlg-title" aria-describedby="dlg-msg"
+         (click)="$event.stopPropagation()" (keydown)="onDialogKeydown($event)">
+      <h2 id="dlg-title" class="dialog-title">{{ req.title }}</h2>
+      <p id="dlg-msg" class="dialog-msg">{{ req.message }}</p>
+      <div class="dialog-actions">
+        <button #cancelBtn type="button" class="btn btn-secondary" (click)="feedback.resolveConfirm(false)">{{ req.cancelText }}</button>
+        <button type="button" class="btn" [class.btn-danger]="req.danger" [class.btn-primary]="!req.danger"
+                (click)="feedback.resolveConfirm(true)">{{ req.confirmText }}</button>
+      </div>
+    </div>
+  </div>
+}

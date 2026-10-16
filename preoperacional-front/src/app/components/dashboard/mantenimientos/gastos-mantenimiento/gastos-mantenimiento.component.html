@@ -1,0 +1,265 @@
+<div class="gastos">
+  <app-page-header icono="dollar" titulo="Gastos de mantenimiento" subtitulo="Registra y controla los gastos de las motocicletas" [nivel]="3" />
+
+  <section class="stats" aria-label="Resumen de gastos">
+    <div class="stat">
+      <span class="stat-label">Total gastado{{ filtroPlaca() ? ' · ' + filtroPlaca() : '' }}</span>
+      <span class="stat-value">{{ totalGastos() | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
+    </div>
+    <div class="stat">
+      <span class="stat-label">Gastos registrados</span>
+      <span class="stat-value">{{ gastosFiltrados().length }}</span>
+    </div>
+    <div class="stat">
+      <span class="stat-label">Promedio por gasto</span>
+      <span class="stat-value">{{ promedioGastos() | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
+    </div>
+  </section>
+
+  <form [formGroup]="gastosForm" (ngSubmit)="onSubmit()" novalidate>
+
+    <section class="card" aria-labelledby="g-moto">
+      <h4 id="g-moto" class="card-title">Información de la motocicleta</h4>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="g-placa" class="form-label">Placa de la moto <span class="req" aria-hidden="true">*</span></label>
+          <input type="text" id="g-placa" class="form-control" appPlaca formControlName="placa" placeholder="ABC12G"
+            [class.is-invalid]="mostrarError('placa')" [attr.aria-invalid]="mostrarError('placa')"
+            [attr.aria-describedby]="mostrarError('placa') ? 'g-placa-error' : null">
+          @if (mostrarError('placa')) {
+            <span id="g-placa-error" class="field-error"><app-icon name="alert" />
+              @if (gastosForm.controls.placa.hasError('required')) { La placa es obligatoria }
+              @else { Formato: 3 letras + 2 números + 1 letra (ej: ABC12G) }
+            </span>
+          }
+        </div>
+        <div class="form-group">
+          <label for="g-km" class="form-label">Kilometraje actual <span class="req" aria-hidden="true">*</span></label>
+          <input type="number" id="g-km" class="form-control" formControlName="kilometraje" placeholder="Ej: 15400" min="0" inputmode="numeric"
+            [class.is-invalid]="mostrarError('kilometraje')" [attr.aria-invalid]="mostrarError('kilometraje')"
+            [attr.aria-describedby]="mostrarError('kilometraje') ? 'g-km-error' : null">
+          @if (mostrarError('kilometraje')) {
+            <span id="g-km-error" class="field-error"><app-icon name="alert" />
+              @if (gastosForm.controls.kilometraje.hasError('min')) { No puede ser negativo } @else { El kilometraje es obligatorio }
+            </span>
+          }
+        </div>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="g-gasto">
+      <h4 id="g-gasto" class="card-title">Información del gasto</h4>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="g-fecha" class="form-label">Fecha del gasto <span class="req" aria-hidden="true">*</span></label>
+          <input type="date" id="g-fecha" class="form-control" formControlName="fechaGasto" [max]="hoy"
+            [class.is-invalid]="mostrarError('fechaGasto')" [attr.aria-invalid]="mostrarError('fechaGasto')">
+          @if (mostrarError('fechaGasto')) { <span class="field-error"><app-icon name="alert" /> Selecciona la fecha</span> }
+        </div>
+        <div class="form-group">
+          <label for="g-tipo" class="form-label">Tipo de gasto <span class="req" aria-hidden="true">*</span></label>
+          <select id="g-tipo" class="form-control" formControlName="tipoGasto"
+            [class.is-invalid]="mostrarError('tipoGasto')" [attr.aria-invalid]="mostrarError('tipoGasto')">
+            <option value="">Seleccione el tipo</option>
+            @for (t of tiposGasto; track t.valor) { <option [value]="t.valor">{{ t.etiqueta }}</option> }
+          </select>
+          @if (mostrarError('tipoGasto')) { <span class="field-error"><app-icon name="alert" /> Selecciona el tipo de gasto</span> }
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="g-desc" class="form-label">Descripción <span class="req" aria-hidden="true">*</span></label>
+          <input type="text" id="g-desc" class="form-control" formControlName="descripcion" placeholder="Ej: Cambio de aceite, reparación de frenos…"
+            [class.is-invalid]="mostrarError('descripcion')" [attr.aria-invalid]="mostrarError('descripcion')">
+          @if (mostrarError('descripcion')) { <span class="field-error"><app-icon name="alert" /> Describe el gasto</span> }
+        </div>
+        <div class="form-group">
+          <label for="g-prov" class="form-label">Proveedor / taller <span class="req" aria-hidden="true">*</span></label>
+          <input type="text" id="g-prov" class="form-control" formControlName="proveedor" placeholder="Nombre del proveedor o taller"
+            [class.is-invalid]="mostrarError('proveedor')" [attr.aria-invalid]="mostrarError('proveedor')">
+          @if (mostrarError('proveedor')) { <span class="field-error"><app-icon name="alert" /> Indica el proveedor o taller</span> }
+        </div>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="g-fin">
+      <h4 id="g-fin" class="card-title">Información financiera</h4>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="g-valor" class="form-label">Valor del gasto <span class="req" aria-hidden="true">*</span></label>
+          <div class="input-affix">
+            <span class="affix" aria-hidden="true">$</span>
+            <input type="number" id="g-valor" class="form-control" formControlName="valorGasto" placeholder="0" min="0" step="any" inputmode="decimal"
+              [class.is-invalid]="mostrarError('valorGasto')" [attr.aria-invalid]="mostrarError('valorGasto')"
+              [attr.aria-describedby]="mostrarError('valorGasto') ? 'g-valor-error' : null">
+          </div>
+          @if (mostrarError('valorGasto')) {
+            <span id="g-valor-error" class="field-error"><app-icon name="alert" />
+              @if (gastosForm.controls.valorGasto.hasError('required')) { El valor es obligatorio } @else { El valor debe ser mayor a 0 }
+            </span>
+          }
+        </div>
+        <div class="form-group">
+          <label for="g-pago" class="form-label">Forma de pago <span class="req" aria-hidden="true">*</span></label>
+          <select id="g-pago" class="form-control" formControlName="formaPago"
+            [class.is-invalid]="mostrarError('formaPago')" [attr.aria-invalid]="mostrarError('formaPago')">
+            <option value="">Seleccione la forma de pago</option>
+            @for (f of formasPago; track f.valor) { <option [value]="f.valor">{{ f.etiqueta }}</option> }
+          </select>
+          @if (mostrarError('formaPago')) { <span class="field-error"><app-icon name="alert" /> Selecciona la forma de pago</span> }
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="g-factura" class="form-label">N.º de factura / recibo <span class="form-hint">(opcional)</span></label>
+          <input type="text" id="g-factura" class="form-control" formControlName="numeroFactura" placeholder="Número de factura o recibo">
+        </div>
+        <div class="form-group">
+          <label for="g-venc" class="form-label">Fecha de vencimiento <span class="form-hint">(si aplica)</span></label>
+          <input type="date" id="g-venc" class="form-control" formControlName="fechaVencimiento">
+        </div>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="g-tec">
+      <h4 id="g-tec" class="card-title">Detalles técnicos <span class="form-hint">(opcional)</span></h4>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="g-kmant" class="form-label">Kilometraje anterior</label>
+          <input type="number" id="g-kmant" class="form-control" formControlName="kilometrajeAnterior" placeholder="Km antes del mantenimiento" min="0" inputmode="numeric"
+            [class.is-invalid]="gastosForm.hasError('kmAnterior')" [attr.aria-invalid]="gastosForm.hasError('kmAnterior')">
+          @if (gastosForm.hasError('kmAnterior')) {
+            <span class="field-error"><app-icon name="alert" /> No puede ser mayor al kilometraje actual</span>
+          }
+        </div>
+        <div class="form-group">
+          <label for="g-kmprox" class="form-label">Próximo mantenimiento (km)</label>
+          <input type="number" id="g-kmprox" class="form-control" formControlName="proximoMantenimiento" placeholder="Km del próximo mantenimiento" min="0" inputmode="numeric"
+            [class.is-invalid]="gastosForm.hasError('kmProximo')" [attr.aria-invalid]="gastosForm.hasError('kmProximo')">
+          @if (gastosForm.hasError('kmProximo')) {
+            <span class="field-error"><app-icon name="alert" /> Debe ser mayor al kilometraje actual</span>
+          }
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="g-obs" class="form-label">Observaciones técnicas</label>
+        <textarea id="g-obs" class="form-control" formControlName="observaciones" rows="3"
+          placeholder="Detalles del trabajo realizado, repuestos utilizados, etc."></textarea>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="g-docs">
+      <h4 id="g-docs" class="card-title">Documentos de soporte <span class="form-hint">(opcional)</span></h4>
+
+      <app-zona-carga titulo="Subir documentos" objeto="los documentos" [accept]="acceptDocumentos"
+        ayuda="PDF, JPG o PNG · máx. 5 MB cada uno · facturas, recibos, garantías" (archivos)="handleFiles($event)" />
+
+      @if (uploadedFiles.length > 0) {
+        <ul class="docs">
+          @for (file of uploadedFiles; track file; let i = $index) {
+            <li class="doc">
+              <app-icon [name]="getFileIcon(file.type)" class="doc-icon" />
+              <span class="doc-name" [attr.title]="file.name">{{ file.name }}</span>
+              <span class="doc-size">{{ formatFileSize(file.size) }}</span>
+              <button type="button" class="btn btn-ghost btn-sm btn-icon-only" (click)="removeDocument(i)" [attr.aria-label]="'Quitar ' + file.name">
+                <app-icon name="x" />
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+
+    <div class="actions-section">
+      <div class="form-progress">
+        <div class="progress-bar" role="progressbar" aria-label="Avance del formulario"
+          aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="getFormProgress()">
+          <div class="progress-fill" [style.width.%]="getFormProgress()"></div>
+        </div>
+        <span class="progress-text">{{ getFormProgress() }}%</span>
+      </div>
+      <div class="buttons-group">
+        <button type="button" class="btn btn-ghost" (click)="limpiarFormulario()" [disabled]="guardando"><app-icon name="reset" /><span>Limpiar</span></button>
+        <button type="submit" class="btn btn-primary" [disabled]="guardando">
+          @if (guardando) { <span class="spinner" aria-hidden="true"></span><span>Guardando…</span> }
+          @else { <app-icon name="save" /><span>Guardar gasto</span> }
+        </button>
+      </div>
+    </div>
+  </form>
+
+  <section class="card historial" aria-labelledby="g-hist">
+    <div class="historial-cabecera">
+      <h4 id="g-hist" class="card-title">Gastos registrados</h4>
+      <div class="historial-filtro">
+        <label for="g-filtro" class="sr-only">Filtrar por placa</label>
+        <input type="search" id="g-filtro" class="form-control form-control-sm placa" placeholder="Filtrar por placa" maxlength="6"
+          autocomplete="off" [value]="filtroPlaca()" (input)="filtrarPorPlaca($event)">
+        <button type="button" class="btn btn-ghost btn-sm btn-icon-only" (click)="recargar()" [disabled]="cargando()" aria-label="Actualizar lista de gastos">
+          <app-icon name="refresh" />
+        </button>
+      </div>
+    </div>
+
+    @if (cargando() && gastosFiltrados().length === 0) {
+      <p class="cargando" role="status"><span class="spinner" aria-hidden="true"></span> Cargando gastos…</p>
+    } @else if (error(); as err) {
+      <div class="estado-vacio" role="alert">
+        <app-icon name="alert" />
+        <h4>No se pudieron cargar los gastos</h4>
+        <p>{{ err }}</p>
+        <button type="button" class="btn btn-secondary" (click)="recargar()"><app-icon name="refresh" /><span>Reintentar</span></button>
+      </div>
+    } @else if (gastosFiltrados().length === 0) {
+      <div class="estado-vacio">
+        <app-icon name="dollar" />
+        @if (filtroPlaca()) {
+          <h4>No hay gastos para {{ filtroPlaca() }}</h4>
+          <p>Revisa la placa o borra el filtro para ver todos.</p>
+        } @else {
+          <h4>Aún no hay gastos registrados</h4>
+          <p>Los gastos que guardes aparecerán aquí, con sus facturas y soportes.</p>
+        }
+      </div>
+    } @else {
+      <ul class="registros">
+        @for (g of gastosVisibles(); track g.id) {
+          <li class="registro">
+            <div class="registro-principal">
+              <span class="chip-placa">{{ g.placa }}</span>
+              <div class="registro-texto">
+                <strong>{{ g.descripcion }}</strong>
+                <span class="registro-meta">
+                  {{ etiquetaTipo(g.tipoGasto) }} · {{ g.proveedor }} · {{ g.fechaGasto | date:'d MMM y' }} · {{ g.kilometraje | number }} km
+                </span>
+                <span class="registro-meta">{{ etiquetaPago(g.formaPago) }}@if (g.numeroFactura) { · Factura {{ g.numeroFactura }} } · por {{ g.creadoPor }}</span>
+                @if (g.documentos.length > 0) {
+                  <span class="docs-guardados">
+                    @for (d of g.documentos; track d.id) {
+                      <a class="doc-link" [href]="d.url" target="_blank" rel="noopener" [attr.title]="d.name">
+                        <app-icon [name]="getFileIcon(d.type)" /><span>{{ d.name }}</span>
+                      </a>
+                    }
+                  </span>
+                }
+              </div>
+            </div>
+            <div class="registro-lado">
+              <span class="gasto-valor">{{ g.valorGasto | currency:'COP':'symbol-narrow':'1.0-2' }}</span>
+              @if (puedeEliminar(g)) {
+                <button type="button" class="btn btn-ghost btn-sm btn-icon-only btn-peligro" (click)="eliminarGasto(g)" [attr.aria-label]="'Eliminar gasto ' + g.descripcion">
+                  <app-icon name="trash" />
+                </button>
+              }
+            </div>
+          </li>
+        }
+      </ul>
+      @if (gastosFiltrados().length > 5) {
+        <button type="button" class="btn btn-secondary btn-sm ver-mas" (click)="mostrarTodos.set(!mostrarTodos())">
+          {{ mostrarTodos() ? 'Ver menos' : 'Ver todos (' + gastosFiltrados().length + ')' }}
+        </button>
+      }
+    }
+  </section>
+</div>

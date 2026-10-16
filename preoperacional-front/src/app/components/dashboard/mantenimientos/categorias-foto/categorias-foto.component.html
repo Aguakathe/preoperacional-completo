@@ -1,0 +1,38 @@
+<section class="panel" [attr.aria-label]="titulo()">
+  <header class="panel-head">
+    <h4 class="panel-title">{{ titulo() }}</h4>
+    <div class="panel-meta">
+      <span class="total" aria-live="polite"><strong>{{ total() }}</strong> {{ total() === 1 ? 'foto' : 'fotos' }}</span>
+      @if (modo() === 'filtro' && seleccion()) {
+        <button type="button" class="clear" (click)="seleccion.set(null)">Ver todas</button>
+      }
+    </div>
+  </header>
+  @if (ayuda()) {
+    <p class="help">{{ ayuda() }}</p>
+  }
+
+  <div class="grid" role="group" [attr.aria-label]="modo() === 'filtro' ? 'Filtrar por categoría' : 'Categoría de destino'">
+    @for (cat of categorias; track cat.id) {
+      <button type="button" class="tile"
+        [class.sobre]="sobre() === cat.id"
+        [class.vacia]="conteos()[cat.id] === 0"
+        [attr.aria-pressed]="seleccion() === cat.id"
+        [attr.aria-label]="etiqueta(cat.nombre, conteos()[cat.id])"
+        (click)="elegir(cat.id)"
+        (dragover)="alArrastrar($event, cat.id)"
+        (dragleave)="sobre.set(null)"
+        (drop)="alSoltar($event, cat.id)">
+        <span class="tile-top">
+          <span class="icon-badge" aria-hidden="true"><app-icon [name]="cat.icono" /></span>
+          <!-- El @for de un solo elemento recrea el número cuando cambia y reproduce la animación -->
+          @for (n of [conteos()[cat.id]]; track n) {
+            <span class="count" aria-hidden="true">{{ n }}</span>
+          }
+        </span>
+        <span class="tile-name">{{ cat.nombre }}</span>
+        <span class="meter" aria-hidden="true"><span class="fill" [style.width.%]="(conteos()[cat.id] / maximo()) * 100"></span></span>
+      </button>
+    }
+  </div>
+</section>

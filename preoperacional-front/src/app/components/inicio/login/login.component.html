@@ -1,0 +1,130 @@
+<section class="login-card fade-in" aria-labelledby="titulo-login">
+  <a class="cerrar" routerLink="/inicio" aria-label="Volver al inicio"><app-icon name="x" /></a>
+
+  <header class="login-header">
+    <div class="logo-badge" aria-hidden="true"><app-icon [name]="modo === 'acceso' ? 'moto' : 'key'" /></div>
+    <h1 id="titulo-login" class="login-title">{{ modo === 'acceso' ? 'Iniciar sesión' : 'Cambiar contraseña' }}</h1>
+    <p class="login-subtitle">
+      {{ modo === 'acceso' ? 'Accede con tu usuario y contraseña' : 'Confirma tu contraseña actual y elige una nueva' }}
+    </p>
+  </header>
+
+  @if (motivo() === 'expirada' && modo === 'acceso') {
+    <div class="alert alert-info" role="status"><app-icon name="info" /><span>Tu sesión se cerró por inactividad. Vuelve a ingresar.</span></div>
+  }
+  @if (servidorNoDisponible()) {
+    <div class="alert alert-warning" role="status"><app-icon name="alert" /><span>No hay conexión con el servidor. Verifica que el back-end esté encendido.</span></div>
+  }
+
+  @if (modo === 'acceso') {
+    <!-- novalidate: la validación la maneja Angular y se muestra en español, de forma consistente -->
+    <form [formGroup]="login" (ngSubmit)="onSubmit()" novalidate>
+      <div class="field">
+        <input type="text" id="usuario" class="field-input" formControlName="usuario" placeholder=" "
+          autocomplete="username" autocapitalize="none" spellcheck="false"
+          [class.is-invalid]="mostrarError('usuario')" [attr.aria-invalid]="mostrarError('usuario')"
+          [attr.aria-describedby]="mostrarError('usuario') ? 'usuario-error' : null">
+        <label for="usuario" class="field-label">Usuario</label>
+      </div>
+      @if (mostrarError('usuario')) {
+        <span id="usuario-error" class="field-error"><app-icon name="alert" /> Escribe tu usuario</span>
+      }
+
+      <div class="field">
+        <input [type]="showPassword ? 'text' : 'password'" id="password" class="field-input" formControlName="password"
+          placeholder=" " autocomplete="current-password"
+          [class.is-invalid]="mostrarError('password')" [attr.aria-invalid]="mostrarError('password')"
+          [attr.aria-describedby]="mostrarError('password') ? 'password-error' : null">
+        <label for="password" class="field-label">Contraseña</label>
+        <button type="button" class="toggle" (click)="togglePasswordVisibility()"
+          [attr.aria-label]="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'" [attr.aria-pressed]="showPassword">
+          <app-icon [name]="showPassword ? 'eye-off' : 'eye'" />
+        </button>
+      </div>
+      @if (mostrarError('password')) {
+        <span id="password-error" class="field-error"><app-icon name="alert" /> Escribe tu contraseña</span>
+      }
+
+      @if (errorMessage) {
+        <div class="alert alert-error" role="alert"><app-icon name="alert" /><span>{{ errorMessage }}</span></div>
+      }
+
+      <button class="btn btn-primary entrar" type="submit" [disabled]="enviando">
+        @if (enviando) { <span class="spinner" aria-hidden="true"></span><span>Ingresando…</span> }
+        @else { <app-icon name="lock" /><span>Ingresar</span> }
+      </button>
+
+      <!-- Enlace secundario: misma posición que «¿Has olvidado la contraseña?» -->
+      <button type="button" class="enlace" (click)="irACambio()">Cambiar contraseña</button>
+    </form>
+  } @else {
+    <form [formGroup]="cambio" (ngSubmit)="onSubmitCambio()" novalidate>
+      <div class="field">
+        <input type="text" id="cambio-usuario" class="field-input" formControlName="usuario" placeholder=" "
+          autocomplete="username" autocapitalize="none" spellcheck="false"
+          [class.is-invalid]="mostrarErrorCambio('usuario')" [attr.aria-invalid]="mostrarErrorCambio('usuario')"
+          [attr.aria-describedby]="mostrarErrorCambio('usuario') ? 'cambio-usuario-error' : null">
+        <label for="cambio-usuario" class="field-label">Usuario</label>
+      </div>
+      @if (mostrarErrorCambio('usuario')) {
+        <span id="cambio-usuario-error" class="field-error"><app-icon name="alert" /> Escribe tu usuario</span>
+      }
+
+      <div class="field">
+        <input [type]="visibles.actual ? 'text' : 'password'" id="cambio-actual" class="field-input" formControlName="actual"
+          placeholder=" " autocomplete="current-password"
+          [class.is-invalid]="mostrarErrorCambio('actual')" [attr.aria-invalid]="mostrarErrorCambio('actual')"
+          [attr.aria-describedby]="mostrarErrorCambio('actual') ? 'cambio-actual-error' : null">
+        <label for="cambio-actual" class="field-label">Contraseña actual</label>
+        <button type="button" class="toggle" (click)="alternarVisibilidad('actual')"
+          [attr.aria-label]="visibles.actual ? 'Ocultar contraseña actual' : 'Mostrar contraseña actual'" [attr.aria-pressed]="visibles.actual">
+          <app-icon [name]="visibles.actual ? 'eye-off' : 'eye'" />
+        </button>
+      </div>
+      @if (mostrarErrorCambio('actual')) {
+        <span id="cambio-actual-error" class="field-error"><app-icon name="alert" /> Escribe tu contraseña actual</span>
+      }
+
+      <div class="field">
+        <input [type]="visibles.nueva ? 'text' : 'password'" id="cambio-nueva" class="field-input" formControlName="nueva"
+          placeholder=" " autocomplete="new-password"
+          [class.is-invalid]="mostrarErrorCambio('nueva')" [attr.aria-invalid]="mostrarErrorCambio('nueva')"
+          [attr.aria-describedby]="mostrarErrorCambio('nueva') ? 'cambio-nueva-error' : 'cambio-fuerza'">
+        <label for="cambio-nueva" class="field-label">Nueva contraseña</label>
+        <button type="button" class="toggle" (click)="alternarVisibilidad('nueva')"
+          [attr.aria-label]="visibles.nueva ? 'Ocultar nueva contraseña' : 'Mostrar nueva contraseña'" [attr.aria-pressed]="visibles.nueva">
+          <app-icon [name]="visibles.nueva ? 'eye-off' : 'eye'" />
+        </button>
+      </div>
+      @if (mostrarErrorCambio('nueva')) {
+        <span id="cambio-nueva-error" class="field-error"><app-icon name="alert" /> Mínimo {{ passwordMin }} caracteres</span>
+      }
+      <app-fuerza-password id="cambio-fuerza" [password]="cambio.controls.nueva.value" />
+
+      <div class="field">
+        <input [type]="visibles.confirmar ? 'text' : 'password'" id="cambio-confirmar" class="field-input" formControlName="confirmar"
+          placeholder=" " autocomplete="new-password"
+          [class.is-invalid]="mostrarErrorConfirmar()" [attr.aria-invalid]="mostrarErrorConfirmar()"
+          [attr.aria-describedby]="mostrarErrorConfirmar() ? 'cambio-confirmar-error' : null">
+        <label for="cambio-confirmar" class="field-label">Confirmar nueva contraseña</label>
+        <button type="button" class="toggle" (click)="alternarVisibilidad('confirmar')"
+          [attr.aria-label]="visibles.confirmar ? 'Ocultar confirmación' : 'Mostrar confirmación'" [attr.aria-pressed]="visibles.confirmar">
+          <app-icon [name]="visibles.confirmar ? 'eye-off' : 'eye'" />
+        </button>
+      </div>
+      @if (mostrarErrorConfirmar()) {
+        <span id="cambio-confirmar-error" class="field-error"><app-icon name="alert" /> Las contraseñas no coinciden</span>
+      }
+
+      @if (errorMessage) {
+        <div class="alert alert-error" role="alert"><app-icon name="alert" /><span>{{ errorMessage }}</span></div>
+      }
+
+      <button class="btn btn-primary entrar" type="submit" [disabled]="enviando">
+        @if (enviando) { <span class="spinner" aria-hidden="true"></span><span>Guardando…</span> }
+        @else { <app-icon name="save" /><span>Cambiar contraseña</span> }
+      </button>
+      <button type="button" class="enlace" (click)="irAAcceso()">Volver a iniciar sesión</button>
+    </form>
+  }
+</section>
