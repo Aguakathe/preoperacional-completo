@@ -59,13 +59,5 @@ Abre **http://localhost:4200** y entra con `admin / 12345`.
 > Si el proyecto está dentro de **OneDrive** y `npm install` falla con `EPERM`/`EBUSY`, pausa la
 > sincronización o mueve la carpeta fuera de OneDrive (por ejemplo `C:\proyectos\`).
 
-## Pruebas
-
-| Qué | Cómo | Resultado |
-|---|---|---|
-| Front · pruebas unitarias (Vitest) | `cd forms-updated` → `npm run test:ci` | 102 pruebas |
-| Back · pruebas de la API (curl) | Con el back-end corriendo y la base recién creada: `bash preoperacional-back/pruebas/pruebas-api.sh` | 88 casos |
-
-Además, se recorrió la aplicación completa en un navegador real (login, preoperacional, historial,
 fotos, gastos, usuarios, cambio de usuario, recarga de página y vista móvil) con el front y el
 back-end corriendo juntos sobre MariaDB.
