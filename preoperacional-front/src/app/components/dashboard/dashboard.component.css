@@ -1,11 +1,17 @@
 :host { display: block; min-height: 100vh; min-height: 100dvh; background: var(--c-bg); }
 
-.dashboard { max-width: 1040px; margin: 0 auto; padding: 1.25rem 1rem 3rem; outline: none; }
+.dashboard { max-width: 1200px; margin: 0 auto; padding: 1.25rem 1.25rem 3rem; outline: none; }
+/* Las pestañas se quedan fijas debajo de la barra superior al hacer scroll */
+.tabs { position: sticky; top: var(--alto-barra); z-index: 7; box-shadow: var(--shadow-sm); }
 .panels { margin-top: 1.25rem; }
 .tab-panel { animation: fade-in-up .25s ease-out backwards; }
 
 @media (max-width: 640px) {
   .dashboard { padding: .85rem .6rem 2.5rem; }
-  /* En móvil las pestañas muestran solo el ícono + etiqueta corta sin desbordar la pantalla */
-  .tab-button { padding-inline: .8rem; font-size: .88rem; }
+  /* En móvil todas las pestañas caben en una fila: ícono arriba + etiqueta corta debajo */
+  .tabs { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: .25rem; padding: .3rem; overflow: visible; }
+  .tab-button { flex-direction: column; gap: .2rem; min-height: 54px; padding: .45rem .2rem; font-size: .72rem; line-height: 1.1; }
+  /* La etiqueta corta sale del atributo data-corta; el botón conserva aria-label con el nombre completo */
+  .tab-label { font-size: 0; }
+  .tab-label::after { content: attr(data-corta); font-size: .72rem; }
 }

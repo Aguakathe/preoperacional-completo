@@ -14,16 +14,18 @@ export type Pestana = 'preoperacional' | 'historial' | 'mantenimientos' | 'usuar
 interface PestanaDef {
   id: Pestana;
   etiqueta: string;
+  /** Etiqueta para pantallas pequeñas (si no hay, se usa `etiqueta`). */
+  corta?: string;
   icono: string;
   soloAdmin?: boolean;
 }
 
 const PESTANAS: PestanaDef[] = [
-  { id: 'preoperacional', etiqueta: 'Preoperacional', icono: 'clipboard' },
+  { id: 'preoperacional', etiqueta: 'Preoperacional', corta: 'Preop.', icono: 'clipboard' },
   { id: 'historial', etiqueta: 'Historial', icono: 'history' },
-  { id: 'mantenimientos', etiqueta: 'Mantenimientos', icono: 'wrench' },
+  { id: 'mantenimientos', etiqueta: 'Mantenimientos', corta: 'Mtto.', icono: 'wrench' },
   { id: 'usuarios', etiqueta: 'Usuarios', icono: 'users', soloAdmin: true },
-  { id: 'cuenta', etiqueta: 'Mi cuenta', icono: 'user' }
+  { id: 'cuenta', etiqueta: 'Mi cuenta', corta: 'Cuenta', icono: 'user' }
 ];
 
 @Component({

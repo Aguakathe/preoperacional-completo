@@ -50,6 +50,10 @@
   --d-mint: #4ff0b0;
   --d-amber: #ffb23e;
 
+    /* Alturas de las barras fijas: la superior (navbar) y la de pestañas del panel.
+     Los elementos que se pegan debajo (indicador de pasos) se calculan con estas. */
+  --alto-barra: 61px;
+  --alto-pestanas: 58px;
   --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
@@ -166,17 +170,41 @@ select.form-control { appearance: none; padding-right: 2.4rem;
 /* ---------- Opciones (radios / checkboxes) ---------- */
 fieldset.choice-set { border: 0; padding: 0; margin: 0; min-width: 0; }
 .choice-set legend { padding: 0; }
+/* Un <fieldset> que además es tarjeta conserva el padding, borde y margen de .card
+   (la regla de arriba se los quitaba y el contenido quedaba pegado al borde).
+   El <legend> flota para que no se monte sobre el borde superior del fieldset. */
+fieldset.card.choice-set { padding: 1.5rem; margin: 0 0 1.25rem; border: 1px solid var(--c-border); }
+fieldset.card > legend { float: left; width: 100%; }
+fieldset.card > legend + * { clear: both; }
 .choice-group { display: flex; flex-wrap: wrap; gap: .6rem; }
 .choice {
   display: flex; align-items: flex-start; gap: .65rem; flex: 1 1 240px;
   padding: .75rem .9rem; background: #fff;
   border: 1.5px solid var(--c-border); border-radius: var(--radius);
-  cursor: pointer; transition: border-color .15s, background-color .15s; line-height: 1.35;
+    cursor: pointer; transition: border-color .15s, background-color .15s, transform .1s; line-height: 1.35;
 }
 .choice:hover { border-color: var(--c-primary-600); background: var(--c-primary-50); }
 .choice input { flex: none; width: 1.15rem; height: 1.15rem; margin-top: .12rem; accent-color: var(--c-primary); }
 .choice:has(input:checked) { border-color: var(--c-primary); background: var(--c-primary-50); box-shadow: inset 0 0 0 1px var(--c-primary); }
 .choice:has(input:checked.is-bad) { border-color: var(--c-danger); background: var(--c-danger-50); box-shadow: inset 0 0 0 1px var(--c-danger); }
+/* Opciones con significado: verde = cumple / apto, rojo = no cumple / riesgo.
+   Al marcarlas aparece una insignia (✓ o !) para que se distingan de un vistazo, incluso sin color. */
+.choice { position: relative; }
+.choice:active { transform: scale(.995); }
+.choice:has(input.is-good):hover { border-color: var(--c-success); background: var(--c-success-50); }
+.choice:has(input.is-bad):hover { border-color: #e8a29b; background: #fff8f7; }
+.choice:has(input:checked.is-good) { border-color: var(--c-success); background: var(--c-success-50); box-shadow: inset 0 0 0 1px var(--c-success); }
+.choice:has(input.is-good) input { accent-color: var(--c-success); }
+.choice:has(input.is-bad) input { accent-color: var(--c-danger); }
+.choice:has(input:checked.is-good)::after,
+.choice:has(input:checked.is-bad)::after {
+  position: absolute; top: -9px; right: -9px; width: 22px; height: 22px; display: grid; place-items: center;
+  border-radius: 50%; border: 2px solid var(--c-surface); color: #fff; font-size: .75rem; font-weight: 800; line-height: 1;
+  box-shadow: var(--shadow-sm); animation: pop-insignia .25s ease-out;
+}
+.choice:has(input:checked.is-good)::after { content: '✓'; background: var(--c-success); }
+.choice:has(input:checked.is-bad)::after { content: '!'; background: var(--c-danger); }
+@keyframes pop-insignia { 0% { transform: scale(0); } 70% { transform: scale(1.2); } 100% { transform: scale(1); } }
 .choice:has(input:focus-visible) { box-shadow: var(--ring); }
 .choice:has(input:disabled) { opacity: .55; cursor: not-allowed; }
 .choice-group.compact .choice { flex: 0 1 auto; min-width: 120px; }
@@ -266,12 +294,31 @@ select.form-control-sm { background-position: right .6rem center; }
 /* Tarjetas de resumen (números grandes) */
 .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: .9rem; margin-bottom: 1.25rem; }
 .stat {
-  display: grid; gap: .1rem; padding: 1rem 1.1rem; border-radius: var(--radius); color: #fff; box-shadow: var(--shadow-sm);
-  background: linear-gradient(150deg, var(--c-primary-600), var(--c-primary-700));
+  position: relative; overflow: hidden;
+  display: grid; gap: .15rem; padding: 1rem 1.1rem; padding-right: 4rem; border-radius: var(--radius); color: #fff; box-shadow: var(--shadow-sm);
+  /* Brillo menta en la esquina, para que se sienta parte del tablero */
+  background:
+    radial-gradient(160px 90px at 100% 0%, rgba(79, 240, 176, .22), transparent 70%),
+    linear-gradient(150deg, var(--c-primary-600), var(--c-primary-700));
+  transition: transform .2s ease, box-shadow .2s ease;
+  animation: fade-in-up .35s ease-out backwards;
+}
+.stat:nth-child(2) { animation-delay: .06s; }
+.stat:nth-child(3) { animation-delay: .12s; }
+.stat:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.stat-icono {
+  position: absolute; top: 50%; right: 1rem; transform: translateY(-50%);
+  width: 2.6rem; height: 2.6rem; display: grid; place-items: center; font-size: 1.35rem; border-radius: 12px;
+  background: rgba(255, 255, 255, .12); color: var(--d-mint); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .14);
 }
 .stat-label { font-size: .78rem; opacity: .85; text-transform: uppercase; letter-spacing: .05em; }
-.stat-value { font-size: 1.45rem; font-weight: 800; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
-.stat-alerta { background: linear-gradient(150deg, #c2410c, #9a3412); }
+.stat-value { font-size: 1.6rem; font-weight: 800; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; line-height: 1.15; }
+.stat-alerta {
+  background:
+    radial-gradient(160px 90px at 100% 0%, rgba(255, 178, 62, .28), transparent 70%),
+    linear-gradient(150deg, #c2410c, #9a3412);
+}
+.stat-alerta .stat-icono { color: #ffe1b3; }
 
 /* Barra de filtros sobre listados */
 .filtros { display: flex; flex-wrap: wrap; align-items: flex-end; gap: .75rem 1rem; }
@@ -301,6 +348,17 @@ select.form-control-sm { background-position: right .6rem center; }
 }
 .registro:first-child { border-top: 0; padding-top: 0; }
 .registro:last-child { padding-bottom: 0; }
+/* Fila resaltada al pasar el mouse (se sale un poco del borde para que el fondo respire) */
+.registros .registro {
+  position: relative; margin-inline: -.75rem; padding: .9rem .75rem; border-radius: var(--radius);
+  transition: background-color .15s;
+}
+.registros .registro:hover { background: #f4f8f7; }
+.registros .registro + .registro { border-top-left-radius: 0; border-top-right-radius: 0; }
+/* Registro "No apto": franja roja a la izquierda para encontrarlo rápido en la lista */
+.registro-alerta::before {
+  content: ''; position: absolute; left: 0; top: .9rem; bottom: .9rem; width: 3px; border-radius: 3px; background: var(--c-danger);
+}
 .registro-principal { display: flex; align-items: center; gap: .85rem; min-width: 0; }
 .registro-texto { display: grid; gap: .1rem; min-width: 0; }
 .registro-texto strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -331,6 +389,7 @@ select.form-control-sm { background-position: right .6rem center; }
 @keyframes aparecer { from { opacity: 0; } to { opacity: 1; } }
 
 @media (max-width: 640px) {
+  :root { --alto-pestanas: 66px; }
   .form-row { grid-template-columns: 1fr; }
   .registro { flex-direction: column; align-items: flex-start; gap: .5rem; }
   /* Resumen: una sola fila compacta en vez de una cuadrícula 2 + 1 */
@@ -338,9 +397,11 @@ select.form-control-sm { background-position: right .6rem center; }
   .stat { padding: .7rem .75rem; }
   .stat-label { font-size: .66rem; letter-spacing: .02em; }
   .stat-value { font-size: 1.15rem; }
+    .stat { padding-right: .75rem; }
+  .stat-icono { display: none; }
   .registro-lado { width: 100%; justify-content: space-between; }
   .modal { padding: 1.1rem; }
-  .card { padding: 1.1rem; border-radius: var(--radius); }
+    .card, fieldset.card.choice-set { padding: 1.1rem; border-radius: var(--radius); }
   .page-title { font-size: 1.2rem; }
   .actions-section { padding: .75rem; }
   .buttons-group { width: 100%; }

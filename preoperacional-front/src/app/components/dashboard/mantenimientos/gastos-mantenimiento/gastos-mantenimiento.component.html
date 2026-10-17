@@ -1,16 +1,19 @@
 <div class="gastos">
   <app-page-header icono="dollar" titulo="Gastos de mantenimiento" subtitulo="Registra y controla los gastos de las motocicletas" [nivel]="3" />
 
-  <section class="stats" aria-label="Resumen de gastos">
+    <section class="stats" aria-label="Resumen de gastos">
     <div class="stat">
+      <span class="stat-icono" aria-hidden="true"><app-icon name="dollar" /></span>
       <span class="stat-label">Total gastado{{ filtroPlaca() ? ' · ' + filtroPlaca() : '' }}</span>
       <span class="stat-value">{{ totalGastos() | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
     </div>
     <div class="stat">
+      <span class="stat-icono" aria-hidden="true"><app-icon name="file" /></span>
       <span class="stat-label">Gastos registrados</span>
       <span class="stat-value">{{ gastosFiltrados().length }}</span>
     </div>
     <div class="stat">
+      <span class="stat-icono" aria-hidden="true"><app-icon name="tag" /></span>
       <span class="stat-label">Promedio por gasto</span>
       <span class="stat-value">{{ promedioGastos() | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
     </div>

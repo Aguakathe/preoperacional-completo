@@ -23,11 +23,32 @@
     </section>
   }
 
+  <!-- Indicador de pasos: muestra el avance y lleva a cada sección con un clic -->
+  <nav class="indicador" aria-label="Pasos del formulario">
+    <ol>
+      @for (p of pasosIndicador(); track p.numero) {
+        <li class="paso" [class.paso-hecho]="p.estado === 'hecho'" [class.paso-actual]="p.estado === 'actual'"
+          [class.paso-bloqueado]="p.estado === 'bloqueado'" [class.paso-alerta]="p.alerta">
+          <button type="button" (click)="irA(p.id)" [disabled]="!p.id"
+            [attr.aria-current]="p.estado === 'actual' ? 'step' : null"
+            [attr.aria-label]="'Paso ' + p.numero + ': ' + p.etiqueta + (p.estado === 'hecho' ? ' (completo)' : '')">
+            <span class="paso-punto" aria-hidden="true">
+              @if (p.alerta) { <app-icon name="alert" /> }
+              @else if (p.estado === 'hecho') { <app-icon name="check" /> }
+              @else { {{ p.numero }} }
+            </span>
+            <span class="paso-etiqueta" aria-hidden="true">{{ p.etiqueta }}</span>
+          </button>
+        </li>
+      }
+    </ol>
+  </nav>
+
   <form [formGroup]="preoperacionalForm" (ngSubmit)="onSubmit()" novalidate>
 
     <!-- 1) Campaña de prevención -->
     <fieldset class="card choice-set" id="sec-campana">
-      <legend class="card-title"><span class="step">1</span>¿Conoce usted la campaña de prevención en la conducción de motocicletas?</legend>
+      <legend class="card-title"><span class="step" [class.step-ok]="seccionCompleta('sec-campana')">1</span>¿Conoce usted la campaña de prevención en la conducción de motocicletas?</legend>
       <div class="info-box">
         <p><strong>Objetivo:</strong> proporcionar un material visible y llamativo que puedan ver los conductores en el momento de iniciar su conducción.</p>
         <p><strong>Alcance:</strong> conductores que desarrollan actividades laborales.</p>
@@ -45,7 +66,7 @@
 
     <!-- 2) Datos del conductor y moto -->
     <section class="card" id="sec-datos" aria-labelledby="t-datos">
-      <h3 id="t-datos" class="card-title"><span class="step">2</span>Datos del conductor y la moto</h3>
+      <h3 id="t-datos" class="card-title"><span class="step" [class.step-ok]="seccionCompleta('sec-datos')">2</span>Datos del conductor y la moto</h3>
       <div class="form-row">
         <div class="form-group">
           <label for="qlid" class="form-label">QLID <span class="req" aria-hidden="true">*</span></label>
@@ -65,7 +86,7 @@
       <div class="form-row">
         <div class="form-group">
           <label for="placaMoto" class="form-label">Placa de la moto <span class="req" aria-hidden="true">*</span></label>
-                    <input type="text" id="placaMoto" class="form-control" appPlaca formControlName="placaMoto" placeholder="ABC12G"
+          <input type="text" id="placaMoto" class="form-control" appPlaca formControlName="placaMoto" placeholder="ABC12G"
             [class.is-invalid]="mostrarError('placaMoto')" [attr.aria-invalid]="mostrarError('placaMoto')"
             aria-describedby="placa-ayuda">
           @if (mostrarError('placaMoto')) {
@@ -93,7 +114,7 @@
 
     <!-- 3) Estado del vehículo -->
     <section class="card" id="sec-estado" aria-labelledby="t-estado">
-      <h3 id="t-estado" class="card-title"><span class="step">3</span>Estado del vehículo</h3>
+      <h3 id="t-estado" class="card-title"><span class="step" [class.step-ok]="seccionCompleta('sec-estado')">3</span>Estado del vehículo</h3>
       @for (c of chequeos; track c.id) {
         <fieldset class="choice-set subseccion">
           <legend class="subsection-title">{{ c.titulo }}</legend>
@@ -102,7 +123,7 @@
           </ul>
           <div class="choice-group">
             <label class="choice">
-              <input type="radio" [name]="'chk_' + c.id" [attr.name]="'chk_' + c.id" value="buen_estado" [(ngModel)]="c.valor" [ngModelOptions]="{standalone: true}">
+              <input type="radio" [name]="'chk_' + c.id" [attr.name]="'chk_' + c.id" value="buen_estado" class="is-good" [(ngModel)]="c.valor" [ngModelOptions]="{standalone: true}">
               <span>Buen estado / Cumple</span>
             </label>
             <label class="choice">
@@ -116,14 +137,14 @@
 
     <!-- 4) Certificación de salud -->
     <section class="card" id="sec-salud" aria-labelledby="t-salud">
-      <h3 id="t-salud" class="card-title"><span class="step">4</span>Certifico que me encuentro en condiciones óptimas de salud que permiten la conducción y el desarrollo de actividades laborales</h3>
+      <h3 id="t-salud" class="card-title"><span class="step" [class.step-ok]="seccionCompleta('sec-salud')">4</span>Certifico que me encuentro en condiciones óptimas de salud que permiten la conducción y el desarrollo de actividades laborales</h3>
       <div class="salud-items">
         @for (item of saludItems; track $index; let i = $index) {
           <fieldset class="choice-set salud-item">
             <legend class="salud-pregunta"><span class="salud-numero">{{ i + 1 }}.</span> {{ item.pregunta }}</legend>
             <div class="choice-group">
               <label class="choice">
-                <input type="radio" [name]="'salud_' + i" [attr.name]="'salud_' + i" value="si" [(ngModel)]="item.respuesta" [ngModelOptions]="{standalone: true}">
+                <input type="radio" class="is-good" [name]="'salud_' + i" [attr.name]="'salud_' + i" value="si" [(ngModel)]="item.respuesta" [ngModelOptions]="{standalone: true}">
                 <span>Sí, me encuentro en condiciones óptimas de salud</span>
               </label>
               <label class="choice">
@@ -145,14 +166,14 @@
 
     <!-- 5) ¿Hay elementos en mal estado? -->
     <fieldset class="card choice-set" id="sec-malestado">
-      <legend class="card-title"><span class="step">5</span>¿El vehículo presenta algún(os) elemento(s) que no cumplieron o están en mal estado?</legend>
+      <legend class="card-title"><span class="step" [class.step-ok]="seccionCompleta('sec-malestado')">5</span>¿El vehículo presenta algún(os) elemento(s) que no cumplieron o están en mal estado?</legend>
       <div class="choice-group">
         <label class="choice">
           <input type="radio" class="is-bad" name="elementosMalEstado" value="si" [(ngModel)]="elementosMalEstado" [ngModelOptions]="{standalone: true}">
           <span>El vehículo, la documentación o el conductor presenta elementos que no cumplen o están en mal estado</span>
         </label>
         <label class="choice">
-          <input type="radio" name="elementosMalEstado" value="no" [(ngModel)]="elementosMalEstado" [ngModelOptions]="{standalone: true}">
+          <input type="radio" class="is-good" name="elementosMalEstado" value="no" [(ngModel)]="elementosMalEstado" [ngModelOptions]="{standalone: true}">
           <span>El vehículo, la documentación y el conductor están en perfecto estado para la conducción, funcionamiento y operación</span>
         </label>
       </div>
@@ -168,14 +189,14 @@
     <!-- 6) Detalle de los elementos que no cumplen (condicional) -->
     @if (elementosMalEstado === 'si') {
       <section class="card fade-in" id="sec-detalle" aria-labelledby="t-detalle">
-        <h3 id="t-detalle" class="card-title"><span class="step">6</span>Elemento(s) que no cumplieron o están en mal estado</h3>
+        <h3 id="t-detalle" class="card-title"><span class="step" [class.step-ok]="seccionCompleta('sec-detalle')">6</span>Elemento(s) que no cumplieron o están en mal estado</h3>
 
         @for (cat of categorias; track cat.clave; let ci = $index) {
           <fieldset class="choice-set subseccion">
             <legend class="subsection-title">{{ cat.titulo }}</legend>
             <div class="choice-group compact">
               <label class="choice">
-                <input type="radio" [name]="'perfecto_' + cat.clave" [attr.name]="'perfecto_' + cat.clave" value="si" [ngModel]="cat.perfecto" [ngModelOptions]="{standalone: true}"
+                <input type="radio" class="is-good" [name]="'perfecto_' + cat.clave" [attr.name]="'perfecto_' + cat.clave" value="si" [ngModel]="cat.perfecto" [ngModelOptions]="{standalone: true}"
                   (ngModelChange)="onPerfectoChange(cat, 'si')">
                 <span>{{ cat.etiquetaPerfecto }}</span>
               </label>
@@ -204,14 +225,14 @@
     <!-- 7) Confirmaciones (condicional) -->
     @if (elementosMalEstado === 'no') {
       <section class="card fade-in" id="sec-confirm" aria-labelledby="t-confirm">
-        <h3 id="t-confirm" class="card-title"><span class="step">7</span>Confirmaciones</h3>
+        <h3 id="t-confirm" class="card-title"><span class="step" [class.step-ok]="seccionCompleta('sec-confirm')">7</span>Confirmaciones</h3>
 
         <fieldset class="choice-set subseccion">
           <legend class="confirmacion-texto">Confirmo que cualquier condición insegura (criterio en Mal estado / NO Cumple) la comunicaré telefónicamente a mi líder de territorio inmediatamente, para identificar medida de control y garantizar continuidad de la operación sin el uso de la motocicleta; esta no podrá ser usada para actividades laborales hasta que se haga la reparación y mantenimiento adecuado.</legend>
           <div class="choice-group compact">
             @for (op of siNo; track op.valor) {
               <label class="choice">
-                <input type="radio" name="confirmacionInsegura" [value]="op.valor" [(ngModel)]="confirmacionInsegura" [ngModelOptions]="{standalone: true}">
+                <input type="radio" name="confirmacionInsegura" [value]="op.valor" [class.is-good]="op.valor === 'si'" [class.is-bad]="op.valor === 'no'" [(ngModel)]="confirmacionInsegura" [ngModelOptions]="{standalone: true}">
                 <span>{{ op.etiqueta }}</span>
               </label>
             }
@@ -223,7 +244,7 @@
           <div class="choice-group compact">
             @for (op of siNo; track op.valor) {
               <label class="choice">
-                <input type="radio" name="confirmacionInspeccion" [value]="op.valor" [(ngModel)]="confirmacionInspeccion" [ngModelOptions]="{standalone: true}">
+                <input type="radio" name="confirmacionInspeccion" [value]="op.valor" [class.is-good]="op.valor === 'si'" [class.is-bad]="op.valor === 'no'" [(ngModel)]="confirmacionInspeccion" [ngModelOptions]="{standalone: true}">
                 <span>{{ op.etiqueta }}</span>
               </label>
             }

@@ -36,6 +36,17 @@ export interface Pendiente {
   texto: string;
 }
 
+/** Un punto del indicador de pasos que va arriba del formulario. */
+export interface PasoIndicador {
+  /** id de la sección a la que lleva (vacío si el paso aún no aplica). */
+  id: string;
+  numero: string;
+  etiqueta: string;
+  estado: 'hecho' | 'actual' | 'pendiente' | 'bloqueado';
+  /** El paso está respondido, pero con una respuesta que impide conducir. */
+  alerta: boolean;
+}
+
 @Component({
   selector: 'app-preoperacional',
   templateUrl: './preoperacional.component.html',
@@ -145,7 +156,42 @@ export class PreoperacionalComponent implements OnInit {
   }
 
   private get totalReportados(): number {
-    return this.categorias.reduce((t, c) => t + c.seleccionados.length, 0);
+    return this
+    .categorias.reduce((t, c) => t + c.seleccionados.length, 0);
+  }
+
+    /**
+   * Indicador de pasos: usa las mismas reglas de `pendientes()`, así nunca dice "hecho" si el envío lo rechazaría.
+   * El último paso depende del punto 5: 6) Detalle si hay elementos en mal estado, 7) Confirmar si no.
+   */
+  pasosIndicador(): PasoIndicador[] {
+    const faltan = new Set(this.pendientes().map(p => p.id));
+    const ultimo = this.elementosMalEstado === 'si'
+      ? { id: 'sec-detalle', numero: '6', etiqueta: 'Detalle' }
+      : this.elementosMalEstado === 'no'
+        ? { id: 'sec-confirm', numero: '7', etiqueta: 'Confirmar' }
+        : { id: '', numero: '6', etiqueta: 'Cierre' };
+    const pasos = [
+      { id: 'sec-campana', numero: '1', etiqueta: 'Campaña' },
+      { id: 'sec-datos', numero: '2', etiqueta: 'Datos' },
+      { id: 'sec-estado', numero: '3', etiqueta: 'Vehículo' },
+      { id: 'sec-salud', numero: '4', etiqueta: 'Salud' },
+      { id: 'sec-malestado', numero: '5', etiqueta: 'Novedades' },
+      ultimo
+    ];
+    let hayActual = false;
+    return pasos.map(p => {
+      const alerta = p.id === 'sec-salud' && this.hayRiesgoSalud;
+      if (!p.id) return { ...p, estado: 'bloqueado' as const, alerta };
+      if (!faltan.has(p.id)) return { ...p, estado: 'hecho' as const, alerta };
+      if (!hayActual) { hayActual = true; return { ...p, estado: 'actual' as const, alerta }; }
+      return { ...p, estado: 'pendiente' as const, alerta };
+    });
+  }
+
+  /** true si la sección ya no tiene pendientes (pinta su número en verde). */
+  seccionCompleta(id: string): boolean {
+    return !this.pendientes().some(p => p.id === id);
   }
 
   /** Lista de lo que falta, en el orden del formulario (las mismas reglas valida el servidor). */
