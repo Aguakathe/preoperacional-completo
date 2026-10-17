@@ -5,7 +5,7 @@ Sistema web para el **preoperacional diario de las motos**, el **historial de in
 
 ```
 preoperacional/
-├── forms-updated/          Front-end  · Angular 22 (componentes standalone, signals)
+├── preoperacional-front/          Front-end  · Angular 22 (componentes standalone, signals)
 ├── preoperacional-back/    Back-end   · Java 21 + Jakarta EE (Servlets) + JPA/Hibernate + MySQL
 └── CAMBIOS.md              Qué se mejoró y por qué
 ```
@@ -35,7 +35,7 @@ Cámbialos después del primer ingreso.
 
 ### 1. Base de datos
 Enciende MySQL (en XAMPP: *Start* en MySQL). No hace falta crear nada: la base `preoperacional`
-y sus tablas se crean solas. Si tu usuario `root` tiene contraseña, ponla en
+y sus tablas se crean solas. Si el usuario `root` tiene contraseña, deben ponerla en
 `preoperacional-back/src/main/resources/META-INF/persistence.xml`.
 
 ### 2. Back-end
