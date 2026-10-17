@@ -3,16 +3,17 @@
 <main id="contenido" tabindex="-1" class="dashboard">
   <div class="tabs" role="tablist" aria-label="Secciones del panel">
     @for (p of pestanas; track p.id; let i = $index) {
-      <button type="button" class="tab-button" role="tab"
+            <button type="button" class="tab-button" role="tab"
         [id]="'tab-' + p.id"
         [attr.aria-selected]="activeTab === p.id"
         [attr.aria-controls]="'panel-' + p.id"
+        [attr.aria-label]="p.etiqueta"
         [attr.tabindex]="activeTab === p.id ? 0 : -1"
         [class.active]="activeTab === p.id"
         (click)="setActiveTab(p.id)"
         (keydown)="onTabKeydown($event, i)">
         <app-icon [name]="p.icono" />
-        <span>{{ p.etiqueta }}</span>
+        <span class="tab-label" [attr.data-corta]="p.corta ?? p.etiqueta">{{ p.etiqueta }}</span>
       </button>
     }
   </div>

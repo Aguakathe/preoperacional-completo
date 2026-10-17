@@ -6,15 +6,19 @@
     </div>
 
     <div class="nav-section">
-      <div class="user-chip">
-        <span class="avatar" aria-hidden="true">{{ inicial() }}</span>
+      <!-- Chip de usuario: el rol de administrador se muestra como un escudo sobre el avatar
+           (antes "Administrador · admin · ADMIN" repetía lo mismo tres veces) -->
+      <div class="user-chip" [attr.title]="esAdmin() ? 'Administrador' : 'Conductor'">
+        <span class="avatar-wrap">
+          <span class="avatar" [class.avatar-admin]="esAdmin()" aria-hidden="true">{{ inicial() }}</span>
+          @if (esAdmin()) {
+            <span class="admin-badge"><app-icon name="shield" aria-hidden="true" /><span class="sr-only">Administrador</span></span>
+          }
+        </span>
         <span class="user-textos">
           <span class="user-name">{{ nombre() }}</span>
           @if (usuario()?.nombre) { <span class="user-login">{{ usuario()?.username }}</span> }
         </span>
-        @if (esAdmin()) {
-          <span class="admin-badge">Admin</span>
-        }
       </div>
       <button type="button" class="btn btn-light btn-sm logout-btn" (click)="logout()" [disabled]="saliendo" aria-label="Cerrar sesión">
         <app-icon name="logout" /><span class="logout-label">Salir</span>

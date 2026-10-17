@@ -29,9 +29,9 @@
 </section>
 
 <section class="stats" aria-label="Resumen del historial">
-  <div class="stat"><span class="stat-label">Registros</span><span class="stat-value">{{ total() }}</span></div>
-  <div class="stat" [class.stat-alerta]="noAptos() > 0"><span class="stat-label">No aptos para conducir</span><span class="stat-value">{{ noAptos() }}</span></div>
-  <div class="stat"><span class="stat-label">Con elementos que no cumplen</span><span class="stat-value">{{ conNovedades() }}</span></div>
+  <div class="stat"><span class="stat-icono" aria-hidden="true"><app-icon name="clipboard" /></span><span class="stat-label">Registros</span><span class="stat-value">{{ total() }}</span></div>
+  <div class="stat" [class.stat-alerta]="noAptos() > 0"><span class="stat-icono" aria-hidden="true"><app-icon name="alert" /></span><span class="stat-label">No aptos para conducir</span><span class="stat-value">{{ noAptos() }}</span></div>
+  <div class="stat"><span class="stat-icono" aria-hidden="true"><app-icon name="wrench" /></span><span class="stat-label">Con elementos que no cumplen</span><span class="stat-value">{{ conNovedades() }}</span></div>
 </section>
 
 <section class="card" aria-labelledby="t-registros">
@@ -60,7 +60,7 @@
   } @else {
     <ul class="registros" [attr.aria-busy]="cargando()">
       @for (r of registros(); track r.id) {
-        <li class="registro">
+                <li class="registro" [class.registro-alerta]="!r.aptoParaConducir">
           <div class="registro-principal">
             <span class="chip-placa">{{ r.placaMoto }}</span>
             <div class="registro-texto">

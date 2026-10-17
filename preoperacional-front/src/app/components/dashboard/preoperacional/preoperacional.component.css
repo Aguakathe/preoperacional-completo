@@ -2,6 +2,68 @@
 
 .mt { margin-top: 1rem; margin-bottom: 0; }
 
+/* ---------- Indicador de pasos (fijo bajo la barra superior mientras se baja) ---------- */
+.indicador {
+    /* Queda pegado debajo de la barra superior + las pestañas, sin dejar franja */
+  position: sticky; top: calc(var(--alto-barra) + var(--alto-pestanas)); z-index: 6; margin-bottom: 1.25rem; padding: .7rem .75rem .6rem;
+  background: rgba(255, 255, 255, .92); backdrop-filter: blur(8px);
+  border: 1px solid var(--c-border); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);
+}
+.indicador ol { display: flex; margin: 0; padding: 0; list-style: none; }
+.paso { position: relative; flex: 1 1 0; min-width: 0; }
+/* Línea que une cada paso con el siguiente; se llena de verde al completarlo */
+.paso:not(:last-child)::after {
+  content: ''; position: absolute; top: 15px; left: calc(50% + 20px); right: calc(-50% + 20px); height: 3px;
+  background: var(--c-border); border-radius: 3px; transition: background-color .3s;
+}
+.paso-hecho:not(:last-child)::after { background: linear-gradient(90deg, var(--c-primary-600), var(--c-accent)); }
+.paso button {
+  width: 100%; display: flex; flex-direction: column; align-items: center; gap: .3rem;
+  padding: 0; border: 0; background: none; color: var(--c-text-muted); font: inherit; cursor: pointer;
+}
+.paso button:disabled { cursor: default; }
+.paso button:focus-visible { outline: none; }
+.paso button:focus-visible .paso-punto { box-shadow: var(--ring); }
+.paso-punto {
+  position: relative; z-index: 1; width: 32px; height: 32px; display: grid; place-items: center;
+  border-radius: 50%; background: var(--c-surface); border: 2px solid var(--c-border-strong);
+  font-size: .85rem; font-weight: 700; font-variant-numeric: tabular-nums;
+  transition: background-color .25s, border-color .25s, color .25s, transform .2s;
+}
+.paso button:not(:disabled):hover .paso-punto { transform: scale(1.08); border-color: var(--c-primary-600); }
+.paso-etiqueta { font-size: .74rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+
+.paso-actual .paso-punto {
+  background: var(--c-primary); border-color: var(--c-primary); color: #fff;
+  animation: pulso-paso 2s ease-out infinite;
+}
+.paso-actual .paso-etiqueta { color: var(--c-primary); font-weight: 800; }
+.paso-hecho .paso-punto { background: linear-gradient(135deg, var(--c-primary-600), var(--c-accent)); border-color: transparent; color: #fff; animation: pop-paso .3s ease-out; }
+.paso-hecho .paso-etiqueta { color: var(--c-primary-700); }
+.paso-alerta .paso-punto { background: var(--c-danger); border-color: var(--c-danger); color: #fff; }
+.paso-alerta .paso-etiqueta { color: var(--c-danger); }
+.paso-bloqueado { opacity: .5; }
+.paso-bloqueado .paso-punto { border-style: dashed; }
+
+@keyframes pulso-paso {
+  0% { box-shadow: 0 0 0 0 rgba(0, 168, 89, .45); }
+  70%, 100% { box-shadow: 0 0 0 9px rgba(0, 168, 89, 0); }
+}
+@keyframes pop-paso { 0% { transform: scale(.7); } 70% { transform: scale(1.12); } 100% { transform: scale(1); } }
+
+/* El número del encabezado de cada tarjeta se vuelve verde cuando la sección está completa */
+.card-title .step { transition: background-color .25s; }
+.card-title .step.step-ok { background: linear-gradient(135deg, var(--c-primary-600), var(--c-accent)); }
+
+@media (max-width: 640px) {
+  .indicador { padding: .55rem .4rem .45rem; border-radius: var(--radius); }
+  .paso-punto { width: 28px; height: 28px; font-size: .78rem; }
+  .paso:not(:last-child)::after { top: 13px; left: calc(50% + 17px); right: calc(-50% + 17px); }
+  /* En móvil solo se lee la etiqueta del paso en curso, para que no se amontonen */
+  .paso-etiqueta { font-size: .68rem; visibility: hidden; }
+  .paso-actual .paso-etiqueta { visibility: visible; overflow: visible; }
+}
+
 /* Los <fieldset>/<legend> son semánticos (lectores de pantalla), se les quita el aspecto nativo */
 fieldset.card { min-width: 0; }
 legend.card-title { float: left; width: 100%; padding: 0; margin-bottom: 1rem; }

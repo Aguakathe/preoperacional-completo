@@ -11,7 +11,7 @@ import { IconComponent } from './icon.component';
   imports: [IconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <header class="page-header">
+    <header class="page-header" [class.page-header-sub]="nivel() === 3">
       <div class="badge-icon" aria-hidden="true"><app-icon [name]="icono()" /></div>
       <div class="textos">
         @if (nivel() === 2) {
@@ -29,6 +29,14 @@ import { IconComponent } from './icon.component';
     .textos { flex: 1; min-width: 0; }
     .acciones { display: flex; flex-wrap: wrap; gap: .5rem; }
     .acciones:empty { display: none; }
+    /* Subsección (nivel 3): más liviano, para no repetir el mismo peso visual del encabezado principal */
+    .page-header-sub { gap: .75rem; margin-bottom: 1.1rem; padding-bottom: .9rem; border-bottom: 1px dashed var(--c-border-strong); }
+    .page-header-sub .badge-icon {
+      width: 40px; height: 40px; font-size: 1.25rem; border-radius: var(--radius-sm);
+      background: var(--c-primary-50); color: var(--c-primary-600); box-shadow: inset 0 0 0 1px var(--c-primary-100);
+    }
+    .page-header-sub .page-title { font-size: 1.12rem; font-weight: 700; color: var(--c-primary); }
+    .page-header-sub .page-subtitle { font-size: .88rem; }
     @media (max-width: 640px) { .page-header { flex-wrap: wrap; } .acciones { width: 100%; } }
   `]
 })
